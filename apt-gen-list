@@ -35,11 +35,13 @@ Option -$OPTARG requires an argument.
 check_config_storage(){
 	if [ ! -d /usr/share/sources-list ]; then
 		echo "Configuration directory /usr/share/sources-list not found!"
+		exit 1
 	fi
 }
 
 # Getting available repositories.
 get_avail_repo(){
+	check_config_storage
 	cd /usr/share/sources-list
 	for i in *.conf; do
 		echo -e "Rating ${i%%0*} $(head -1 $i | sed -e 's/#/|/g') (${i%%.conf})"
@@ -58,6 +60,7 @@ by the vendor, with 1 being the strongest, while the largest number for a rating
 
 # Generate collection of available repositories.
 gen_repo_colle(){
+	check_config_storage
 	cd /usr/share/sources-list
 	export REPOCOLLE="$(ls | sed -e 's/.conf//g')"
 	export TIER1="$(ls 10-* | sed -e 's/.conf//g')"
@@ -65,6 +68,7 @@ gen_repo_colle(){
 
 # Write all to sources.list.
 print_all(){
+	check_config_storage
 	gen_repo_colle
 	if [ -z "$ENABLED" ]; then
 		for disabled in ${DISABLED}; do
