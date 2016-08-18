@@ -1,0 +1,2 @@
+- [ ] Recommend mirrors with a test of speed (DL + Ping?)
+- [ ] Deal with this mess of codes.
