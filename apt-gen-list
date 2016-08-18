@@ -1,0 +1,170 @@
+#!/bin/bash
+
+# Utility for generating sources.list for APT according to available
+# repository configurations.
+
+# Copyleft Mingcong Bai <jeffbai@aosc.xyz>, 2016.
+# Licensed under WTFPL.
+
+# DPKG Architecture.
+DPKGARCH=$(dpkg --print-architecture)
+
+# Timestamp (UNIX seconds).
+AGLSTAMP=$(date +"%s%N")
+
+# Invalid option.
+invalid_opt(){
+	echo -e "\
+Invalid option: -$OPTARG .
+"
+}
+
+# Invalid repository specified.
+invalid_repo(){
+	echo "Invalid repository specified, please use -l to see all available repositories."
+}
+
+# No argument with option.
+option_no_arg(){
+	echo -e "\
+Option -$OPTARG requires an argument.
+"
+}
+
+# Getting to know if configuration exists in the shared directory.
+check_config_storage(){
+	if [ ! -d /usr/share/sources-list ]; then
+		echo "Configuration directory /usr/share/sources-list not found!"
+	fi
+}
+
+# Getting available repositories.
+get_avail_repo(){
+	cd /usr/share/sources-list
+	for i in *.conf; do
+		echo -e "Rating ${i%%0*} $(head -1 $i | sed -e 's/#/|/g') (${i%%.conf})"
+	done
+	if [ -e /etc/os-release ]; then
+		source /etc/os-release
+	fi
+	echo -e "\
+--------------------------------------------------------------------------------------------------
+
+Printed above is a full list of available repositories/mirrors for ${NAME:-this system} with a rating for each
+repository/mirror. A rating describes how strongly a particular repository/mirror is recommended
+by the vendor, with 1 being the strongest, while the largest number for a rating shouts DO NOT USE.
+"
+}
+
+# Generate collection of available repositories.
+gen_repo_colle(){
+	cd /usr/share/sources-list
+	export REPOCOLLE="$(ls | sed -e 's/.conf//g')"
+	export TIER1="$(ls 10-* | sed -e 's/.conf//g')"
+}
+
+# Write all to sources.list.
+print_all(){
+	gen_repo_colle
+	if [ -z "$ENABLED" ]; then
+		for disabled in ${DISABLED}; do
+			export ENABLED=$(sed -e "s/$disabled//g" <<< ${REPOCOLLE})
+		done
+	elif [ -z "$DISABLED" ]; then
+		for enabled in ${ENABLED}; do
+			export DISABLED=$(sed -e "s/$enabled//g" <<< ${REPOCOLLE})
+		done
+	fi
+        echo -e "\
+Printing sources.list as specified...
+
+Enabled repository(s):	"$ENABLED"
+Disabled repository(s):	"$DISABLED"
+"
+	for enabled in ${ENABLED}; do
+		if [ -e /usr/share/sources-list/"$enabled".conf ]; then
+			echo "$enabled" >> /var/lib/apt/gen/enabled."$AGLSTAMP"
+			cat /usr/share/sources-list/"$enabled".conf >> /etc/apt/sources.list."$AGLSTAMP"
+		else
+			invalid_repo
+			exit 1
+		fi
+	done
+	for disabled in ${DISABLED}; do
+		if [ -e /usr/share/sources-list/"$disabled".conf ]; then
+			cat /usr/share/sources-list/"$disabled".conf | sed -e 's/^/# /g' >> /etc/apt/sources.list."$AGLSTAMP"
+			echo "$disabled" >> /var/lib/apt/gen/disabled."$AGLSTAMP"
+		else
+			invalid_repo
+			exit 1
+		fi
+	done
+	if [ $? -eq 0 ]; then
+		mv /etc/apt/sources.list{."$AGLSTAMP",}
+		mv /var/lib/apt/gen/enabled{."$AGLSTAMP",}
+		mv /var/lib/apt/gen/disabled{."$AGLSTAMP",}
+		# Some really ugly post-processing...
+		sed -e 's/\# \#/#/g' -i /etc/apt/sources.list
+		sed -e "s/\$ARCH/$DPKGARCH/g" -i /etc/apt/sources.list
+	fi
+}
+
+# Do it.
+nike(){
+	if [ "$(id -u)" != "0" ]; then
+		echo "You must be root to enable/disable repositories!"
+		exit 1
+	else
+		print_all
+	fi
+}
+
+# Info.
+prog_info(){
+	echo -e "\
+Utility for generating sources.list for APT according to available
+repository configurations.
+"
+}
+
+# Help info.
+prog_help(){
+	echo -e "\
+Usage:	$0 -e \"repo1 repo2 ...\" -d \"repo1 repo2 ...\"
+
+-l	List available repositories.
+-c	Create a default sources.list.
+-e	Enable repositories.
+-d	Disable repositories.
+-h	Display help.
+
+If -c is specified, I will only repositories with a rating of 1,
+and disable all others.
+"
+}
+
+gen_repo_colle
+
+# Full map logic.
+while getopts ":lce:d:h" switches; do
+	case "$switches" in
+		l) get_avail_repo ;;
+		c) ENABLED="$TIER1" ;;
+		e) ENABLED="$OPTARG" ;;
+		d) DISABLED="$OPTARG" ;;
+		h) prog_info; prog_help ;;
+		\?) invalid_opt; prog_info; prog_help; exit 1 ;;
+		:) option_no_arg; exit 1 ;;
+	esac
+done
+
+shift $(( OPTIND - 1 ))
+
+if [[ ! -z "$ENABLED" || ! -z "$DISABLED" ]]; then
+	gen_repo_colle
+	nike
+fi
+
+# Just making sure.
+rm -fv /var/lib/apt/gen/*."$AGLSTAMP"
+rm -fv /etc/apt/sources.list."$AGLSTAMP"
