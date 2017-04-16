@@ -110,12 +110,12 @@ Some configurations are missing; maybe you have specified wrong config names?"
 # Detect platform features that is needed for AOSC optimized overlay.
 function detect_features {
     case "$(uname -m)" in
-		x86_64|i?86) _detect_features_amd64 ;;
-		armv7l|armv8l) _detect_features_arm ;;
-		ppc|ppc64) _detect_features_ppc ;;
+        x86_64|i?86) _detect_features_amd64 ;;
+        armv7l|armv8l) _detect_features_arm ;;
+        ppc|ppc64) _detect_features_ppc ;;
         mips|mips64) _detect_features_mips ;;
-		*) echo -e "This architecture is not supported by AOSC OS." ;;
-	esac
+    *) echo -e "This architecture is not supported by AOSC OS." ;;
+    esac
 }
 
 function _detect_features_amd64 {
@@ -221,11 +221,11 @@ while getopts ":hle:d:" switches; do
 done
 
 if [[ ! -z "$DISABLE" ]]; then
-	disable_repos
+    disable_repos
 fi
 
 if [[ ! -z "$ENABLE" ]]; then
-	enable_repos
+    enable_repos
 fi
 
 # Always list current status after operations; even when no arguments were passed.
