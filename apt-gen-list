@@ -3,172 +3,230 @@
 # Utility for generating sources.list for APT according to available
 # repository configurations.
 
+# Completely rewritten by Junde Yhi. This new version requires:
+#
+# - All config files should be put in /etc/apt/sources.list.d, since all files
+#   will be modified in-place.
+# - All config files should use the new 'deb822' style supported by new APT.
+#
+# Architecture detection is not done by this script; instead, new version of APT
+# can directly make use of '$(ARCH)' variable in configuration files, so we also
+# make use of this great feature.
+
 # Copyleft Mingcong Bai <jeffbai@aosc.xyz>, 2016.
+# Copyleft Junde Yhi <lmy441900@aosc.xyz>, 2017.
 # Licensed under WTFPL.
 
-# DPKG Architecture.
-DPKGARCH=$(dpkg --print-architecture)
+SRCCFGPATH="/etc/apt/sources.list.d" # Where the config files are put.
 
-# Timestamp (UNIX seconds).
-AGLSTAMP=$(date +"%s%N")
-
-# Invalid option.
-invalid_opt(){
-	echo -e "\
-Invalid option: -$OPTARG .
+# Listing available repositories.
+function list_sources {
+    echo -e "Available sources:\n"
+    echo -e "Repo Name  \tDescription" # Table Header
+    echo -e "\
+--------------------------------------------------------------------------------\
 "
-}
+    for i in `find $SRCCFGPATH -type f | sort`; do
+        grep -r "Enabled:\ yes" $i > /dev/null 2>&1
+        if [[ $? == 0 ]]; then
+            printf "\e[32m$i\e[39m  \t" | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g"
+        else
+            printf "\e[31m$i\e[39m  \t" | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g"
+        fi
+        head -n 1 $i | sed -e "s@#\ @@g"
+    done
+    echo -e "\
+--------------------------------------------------------------------------------
 
-# Invalid repository specified.
-invalid_repo(){
-	echo "Invalid repository specified, please use -l to see all available repositories."
-}
+Printed above is a full list of available repositories/mirrors with a rating for
+each repository/mirror. A rating describes how strongly a particular repository
+or mirror is recommended by the vendor, with:
 
-# No argument with option.
-option_no_arg(){
-	echo -e "\
-Option -$OPTARG requires an argument.
+- 1 being the strongest
+- the largest number for a rating shouts DO NOT USE.
 "
-}
 
-# Getting to know if configuration exists in the shared directory.
-check_config_storage(){
-	if [ ! -d /usr/share/sources-list ]; then
-		echo "Configuration directory /usr/share/sources-list not found!"
-		exit 1
-	fi
-}
-
-# Getting available repositories.
-get_avail_repo(){
-	check_config_storage
-	cd /usr/share/sources-list
-	for i in *.conf; do
-		echo -e "Rating ${i%%0*} $(head -1 $i | sed -e 's/#/|/g') (${i%%.conf})"
-	done
-	if [ -e /etc/os-release ]; then
-		source /etc/os-release
-	fi
-	echo -e "\
---------------------------------------------------------------------------------------------------
-
-Printed above is a full list of available repositories/mirrors for ${NAME:-this system} with a rating for each
-repository/mirror. A rating describes how strongly a particular repository/mirror is recommended
-by the vendor, with 1 being the strongest, while the largest number for a rating shouts DO NOT USE.
-"
-}
-
-# Generate collection of available repositories.
-gen_repo_colle(){
-	check_config_storage
-	cd /usr/share/sources-list
-	export REPOCOLLE="$(ls | sed -e 's/.conf//g')"
-	export TIER1="$(ls 10-* | sed -e 's/.conf//g')"
-}
-
-# Write all to sources.list.
-print_all(){
-	check_config_storage
-	gen_repo_colle
-	if [ -z "$ENABLED" ]; then
-		for disabled in ${DISABLED}; do
-			export ENABLED=$(sed -e "s/$disabled//g" <<< ${REPOCOLLE})
-		done
-	elif [ -z "$DISABLED" ]; then
-		for enabled in ${ENABLED}; do
-			export DISABLED=$(sed -e "s/$enabled//g" <<< ${REPOCOLLE})
-		done
-	fi
-        echo -e "\
-Printing sources.list as specified...
-
-Enabled repository(s):	"$ENABLED"
-Disabled repository(s):	"$DISABLED"
-"
-	for enabled in ${ENABLED}; do
-		if [ -e /usr/share/sources-list/"$enabled".conf ]; then
-			echo "$enabled" >> /var/lib/apt/gen/enabled."$AGLSTAMP"
-			cat /usr/share/sources-list/"$enabled".conf >> /etc/apt/sources.list."$AGLSTAMP"
-		else
-			invalid_repo
-			exit 1
-		fi
-	done
-	for disabled in ${DISABLED}; do
-		if [ -e /usr/share/sources-list/"$disabled".conf ]; then
-			cat /usr/share/sources-list/"$disabled".conf | sed -e 's/^/# /g' >> /etc/apt/sources.list."$AGLSTAMP"
-			echo "$disabled" >> /var/lib/apt/gen/disabled."$AGLSTAMP"
-		else
-			invalid_repo
-			exit 1
-		fi
-	done
-	if [ $? -eq 0 ]; then
-		mv /etc/apt/sources.list{."$AGLSTAMP",}
-		mv /var/lib/apt/gen/enabled{."$AGLSTAMP",}
-		mv /var/lib/apt/gen/disabled{."$AGLSTAMP",}
-		# Some really ugly post-processing...
-		sed -e 's/\# \#/#/g' -i /etc/apt/sources.list
-		sed -e "s/\$ARCH/$DPKGARCH/g" -i /etc/apt/sources.list
-	fi
-}
-
-# Do it.
-nike(){
-	if [ "$(id -u)" != "0" ]; then
-		echo "You must be root to enable/disable repositories!"
-		exit 1
-	else
-		print_all
-	fi
-}
-
-# Info.
-prog_info(){
-	echo -e "\
-Utility for generating sources.list for APT according to available
-repository configurations.
-"
+    detect_features
 }
 
 # Help info.
-prog_help(){
-	echo -e "\
-Usage:	$0 -e \"repo1 repo2 ...\" -d \"repo1 repo2 ...\"
+function show_help {
+    echo -e "\
 
--l	List available repositories.
--c	Create a default sources.list.
--e	Enable repositories.
--d	Disable repositories.
--h	Display help.
+Usage: $0 -e \"repo1 repo2 ...\" -d \"repo1 repo2 ...\"
 
-If -c is specified, I will only repositories with a rating of 1,
-and disable all others.
+Utility for generating sources.list for APT according to available repository
+configurations.
+
+  -l    List available repositories.
+  -e    Enable repositories.
+  -d    Disable repositories.
+  -h    Display help.
+
+Written by Junde Yhi <lmy441900@aosc.xyz>
+Report bugs to <https://github.com/AOSC-Dev/apt-gen-list/issues>.
 "
 }
 
-gen_repo_colle
+# Check configuration file availability.
+# FIXME: TOCTOU.
+function check_config_avail {
+    local p=0
+    local e=0
+
+    for i in $1; do
+        if [[ -f "$SRCCFGPATH/$i.sources" ]]; then
+            if [[ ! -w "$SRCCFGPATH/$i.sources" ]]; then
+                echo -e "*** $SRCCFGPATH/$i.sources exists but is NOT writable."
+                p=1
+            fi
+        else
+            echo -e "*** $SRCCFGPATH/$i.sources does NOT exist."
+            e=1
+        fi
+    done
+
+    if [[ $p == 1 ]]; then
+        if [[ $(id -u) != "0" ]]; then
+            echo -e "\n\
+Some configurations are not writable because I do not have sufficient privilege.
+Use \`sudo !!\` to try again."
+            exit 1
+        else
+            echo -e "\n\
+Some configurations are not writable; they may have wrong modes on them. You may
+want to check them by yourself."
+            exit 1
+        fi
+    fi
+
+    if [[ $e == 1 ]]; then
+        echo -e "\n\
+Some configurations are missing; maybe you have specified wrong config names?"
+        exit 2
+    fi
+}
+
+# Detect platform features that is needed for AOSC optimized overlay.
+function detect_features {
+    case "$(uname -m)" in
+		x86_64|i?86) _detect_features_amd64 ;;
+		armv7l|armv8l) _detect_features_arm ;;
+		ppc|ppc64) _detect_features_ppc ;;
+        mips|mips64) _detect_features_mips ;;
+		*) echo -e "This architecture is not supported by AOSC OS." ;;
+	esac
+}
+
+function _detect_features_amd64 {
+    printf "x86 Features:"
+    for i in sse3 avx avx2; do
+        cat /proc/cpuinfo | grep flags | grep $i > /dev/null 2>&1
+        if [[ $? == 0 ]]; then
+            printf " \e[32m$i\e[39m"
+        else
+            printf " \e[31m$i\e[39m"
+        fi
+    done
+    printf "\n"
+}
+
+function _detect_features_arm {
+    printf "Your ARM device name is "
+    DEVNAME=`cat /etc/aosc-arm.conf | grep DEVICE_NAME`
+    if [[ ! -z $DEVNAME ]]; then
+        echo -e "\e[32m$DEVNAME\e[39m"
+    fi
+}
+
+function _detect_features_ppc {
+    printf "PowerPC Features:"
+    for i in ssse3 sse4_1 sse4_2 avx avx2 bmi; do
+        cat /proc/cpuinfo | grep flags | grep $i > /dev/null 2>&1
+        if [[ $? == 0 ]]; then
+            printf " \e[32m$i\e[39m"
+        else
+            printf " \e[31m$i\e[39m"
+        fi
+    done
+    printf "\n"
+}
+
+function _detect_features_mips {
+    printf "MIPS Overlay Requirement:"
+    cat /proc/cpuinfo  | grep "cpu\ model" | grep -i "loongson" > /dev/null 2>&1
+    if [[ $? == 0 ]]; then
+        printf " \e[32mLoongson Processor\e[39m"
+    else
+        printf " \e[31mLoongson Processor\e[39m"
+    fi
+    printf "\n"
+}
+
+# Enabling specified repositories
+# FIXME: DRY, merge with disable_repos.
+function enable_repos {
+    if [[ "$ENABLE" == *all* ]]; then
+        ENABLE=`find $SRCCFGPATH -type f | sort | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g" | xargs`
+    fi
+
+    echo -e "Enabling: $ENABLE\n"
+    check_config_avail "$ENABLE"
+    for i in $ENABLE; do
+        sed --in-place --expression="s@Enabled:\ no@Enabled:\ yes@g" $SRCCFGPATH/$i.sources
+    done
+}
+
+# Disabling specified repositories
+function disable_repos {
+    if [[ "$DISABLE" == *all* ]]; then
+        DISABLE=`find $SRCCFGPATH -type f | sort | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g" | xargs`
+    fi
+
+    echo -e "Disabling: $DISABLE\n"
+    check_config_avail "$DISABLE"
+    for i in $DISABLE; do
+        sed --in-place --expression="s@Enabled:\ yes@Enabled:\ no@g" $SRCCFGPATH/$i.sources
+    done
+}
 
 # Full map logic.
-while getopts ":lce:d:h" switches; do
-	case "$switches" in
-		l) get_avail_repo ;;
-		c) ENABLED="$TIER1" ;;
-		e) ENABLED="$OPTARG" ;;
-		d) DISABLED="$OPTARG" ;;
-		h) prog_info; prog_help ;;
-		\?) invalid_opt; prog_info; prog_help; exit 1 ;;
-		:) option_no_arg; exit 1 ;;
-	esac
+while getopts ":hle:d:" switches; do
+    case "$switches" in
+        l)
+            list_sources
+            exit 0
+            ;;
+        e)
+            ENABLE+="$OPTARG "
+            ;;
+        d)
+            DISABLE+="$OPTARG "
+            ;;
+        h)
+            show_help
+            exit 0
+            ;;
+        \?)
+            echo -e "Invalid option: -$OPTARG."
+            show_help
+            exit 1
+            ;;
+        \:)
+            echo -e "Option -$OPTARG requires an argument."
+            show_help
+            exit 1
+            ;;
+    esac
 done
 
-shift $(( OPTIND - 1 ))
-
-if [[ ! -z "$ENABLED" || ! -z "$DISABLED" ]]; then
-	gen_repo_colle
-	nike
+if [[ ! -z "$DISABLE" ]]; then
+	disable_repos
 fi
 
-# Just making sure.
-rm -fv /var/lib/apt/gen/*."$AGLSTAMP"
-rm -fv /etc/apt/sources.list."$AGLSTAMP"
+if [[ ! -z "$ENABLE" ]]; then
+	enable_repos
+fi
+
+# Always list current status after operations; even when no arguments were passed.
+list_sources
