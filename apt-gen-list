@@ -156,11 +156,10 @@ function _detect_features_mips {
     printf "MIPS Overlay Requirement:"
     cat /proc/cpuinfo  | grep "cpu\ model" | grep -i "loongson" > /dev/null 2>&1
     if [[ $? == 0 ]]; then
-        printf " \e[32mLoongson Processor\e[39m"
+        echo -e " \e[32mLoongson Processor\e[39m"
     else
-        printf " \e[31mLoongson Processor\e[39m"
+        echo -e " \e[31mLoongson Processor\e[39m"
     fi
-    printf "\n"
 }
 
 # Enabling specified repositories
