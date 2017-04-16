@@ -119,7 +119,7 @@ function detect_features {
 }
 
 function _detect_features_amd64 {
-    printf "x86 Features:"
+    printf "x86 ISA Requirements for Overlay Optimization:"
     for i in sse3 avx avx2; do
         cat /proc/cpuinfo | grep flags | grep $i > /dev/null 2>&1
         if [[ $? == 0 ]]; then
@@ -132,6 +132,7 @@ function _detect_features_amd64 {
 }
 
 function _detect_features_arm {
+    # TODO
     printf "Your ARM device name is "
     DEVNAME=`cat /etc/aosc-arm.conf | grep DEVICE_NAME`
     if [[ ! -z $DEVNAME ]]; then
@@ -140,7 +141,7 @@ function _detect_features_arm {
 }
 
 function _detect_features_ppc {
-    printf "PowerPC Features:"
+    printf "PowerPC ISA Requirements for Overlay Optimization:"
     for i in altivec; do
         cat /proc/cpuinfo | grep cpu | grep $i > /dev/null 2>&1
         if [[ $? == 0 ]]; then
@@ -153,12 +154,12 @@ function _detect_features_ppc {
 }
 
 function _detect_features_mips {
-    printf "MIPS Overlay Requirement:"
+    printf "MIPS Processor Requirements for Overlay Optimization:"
     cat /proc/cpuinfo  | grep "cpu\ model" | grep -i "loongson" > /dev/null 2>&1
     if [[ $? == 0 ]]; then
-        echo -e " \e[32mLoongson Processor\e[39m"
+        echo -e " \e[32mLoongson\e[39m"
     else
-        echo -e " \e[31mLoongson Processor\e[39m"
+        echo -e " \e[31mLoongson\e[39m"
     fi
 }
 
