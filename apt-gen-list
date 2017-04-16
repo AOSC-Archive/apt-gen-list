@@ -141,8 +141,8 @@ function _detect_features_arm {
 
 function _detect_features_ppc {
     printf "PowerPC Features:"
-    for i in ssse3 sse4_1 sse4_2 avx avx2 bmi; do
-        cat /proc/cpuinfo | grep flags | grep $i > /dev/null 2>&1
+    for i in altivec; do
+        cat /proc/cpuinfo | grep cpu | grep $i > /dev/null 2>&1
         if [[ $? == 0 ]]; then
             printf " \e[32m$i\e[39m"
         else
