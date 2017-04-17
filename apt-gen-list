@@ -42,9 +42,8 @@ Printed above is a full list of available repositories/mirrors. Green config
 names indicate \e[32menabled\e[39m repositories while red names indicate \e[31mdisabled\e[39m
 repositories.
 
-Specify the 'Config Name's to enable or disable repositories. Besides these
-names, you can also specify \e[1mall\e[21m to enable or disable all repositories.
-"
+Specify the 'Repo Name's to enable or disable repositories. Besides these names,
+you can also specify \e[1mall\e[21m to enable or disable all repositories."
 
     # Show a list of supported features to indicate overlay status.
     detect_features
