@@ -116,7 +116,7 @@ function detect_features {
         armv7l|armv8l) _detect_features_arm ;;
         ppc|ppc64) _detect_features_ppc ;;
         mips|mips64) _detect_features_mips ;;
-    *) echo -e "This architecture is not supported by AOSC OS." ;;
+        *) echo -e "This architecture is not supported by AOSC OS." ;;
     esac
 }
 
