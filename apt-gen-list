@@ -120,7 +120,7 @@ function detect_features {
 
 function _detect_features_amd64 {
     printf "x86 ISA Requirements for Overlay Optimization:"
-    for i in sse3 avx avx2; do
+    for i in avx avx2 bmi bmi2; do
         grep "flags" /proc/cpuinfo | grep "$i" > /dev/null 2>&1
         if [[ $? == 0 ]]; then
             printf " \e[32m$i\e[39m"
