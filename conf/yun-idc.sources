@@ -1,0 +1,14 @@
+# Yun-IDC (Capital Online Data Service LTD.) OSS Mirror
+
+Enabled: no
+Types:   deb
+URIs:    http://mirrors.yun-idc.com/anthon/os-$(ARCH)/os3-dpkg
+Suites:  /
+By-Hash: force
+
+Enabled: no
+Types:   deb
+URIs:    http://mirrors.yun-idc.com/anthon/os-noarch/os3-dpkg
+Suites:  /
+By-Hash: force
+

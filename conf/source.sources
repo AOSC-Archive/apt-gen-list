@@ -1,0 +1,14 @@
+# AOSC source repository (hosted by BlueT, and National Chi Nan University)
+
+Enabled: no
+Types:   deb
+URIs:    https://repo.aosc.io/os-$(ARCH)/os3-dpkg
+Suites:  /
+By-Hash: force
+
+Enabled: no
+Types:   deb
+URIs:    https://repo.aosc.io/os-noarch/os3-dpkg
+Suites:  /
+By-Hash: force
+

@@ -1,0 +1,14 @@
+# USTC (University of Science and Technology of China) OSS Mirror
+
+Enabled: yes
+Types:   deb
+URIs:    https://mirrors.ustc.edu.cn/anthon/os-$(ARCH)/os3-dpkg
+Suites:  /
+By-Hash: force
+
+Enabled: yes
+Types:   deb
+URIs:    https://mirrors.ustc.edu.cn/anthon/os-noarch/os3-dpkg
+Suites:  /
+By-Hash: force
+

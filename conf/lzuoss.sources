@@ -1,0 +1,14 @@
+# LZUOSS of Lanzhou University.
+
+Enabled: no
+Types:   deb
+URIs:    http://mirror.lzu.edu.cn/anthon/os-$(ARCH)/os3-dpkg
+Suites:  /
+By-Hash: force
+
+Enabled: no
+Types:   deb
+URIs:    http://mirror.lzu.edu.cn/anthon/os-noarch/os3-dpkg
+Suites:  /
+By-Hash: force
+
