@@ -170,7 +170,6 @@ function enable_repos {
         ENABLE=`find $SRCCFGPATH -type f | sort | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g" | xargs`
     fi
 
-    echo -e "Enabling: $ENABLE\n"
     check_config_avail "$ENABLE"
     for i in $ENABLE; do
         sed --in-place --expression="s@Enabled:\ no@Enabled:\ yes@g" $SRCCFGPATH/$i.sources
@@ -183,7 +182,6 @@ function disable_repos {
         DISABLE=`find $SRCCFGPATH -type f | sort | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g" | xargs`
     fi
 
-    echo -e "Disabling: $DISABLE\n"
     check_config_avail "$DISABLE"
     for i in $DISABLE; do
         sed --in-place --expression="s@Enabled:\ yes@Enabled:\ no@g" $SRCCFGPATH/$i.sources
@@ -199,9 +197,11 @@ while getopts ":hle:d:" switches; do
             ;;
         e)
             ENABLE+="$OPTARG "
+            [[ ! -z $enable_first || ! -z $disable_first ]] || enable_first=1
             ;;
         d)
             DISABLE+="$OPTARG "
+            [[ ! -z $enable_first || ! -z $disable_first ]] || disable_first=1
             ;;
         h)
             show_help
@@ -220,12 +220,20 @@ while getopts ":hle:d:" switches; do
     esac
 done
 
-if [[ ! -z "$DISABLE" ]]; then
-    disable_repos
+if [[ $enable_first ]]; then
+    [[ -z "$ENABLE" ]]  || echo -e "Enabling:  $ENABLE"
+    [[ -z "$DISABLE" ]] || echo -e "Disabling: $DISABLE\n"
+else
+    [[ -z "$DISABLE" ]] || echo -e "Disabling: $DISABLE"
+    [[ -z "$ENABLE" ]]  || echo -e "Enabling:  $ENABLE\n"
 fi
 
-if [[ ! -z "$ENABLE" ]]; then
-    enable_repos
+if [[ $enable_first ]]; then
+    [[ -z "$ENABLE" ]]  || enable_repos
+    [[ -z "$DISABLE" ]] || disable_repos
+else
+    [[ -z "$DISABLE" ]] || disable_repos
+    [[ -z "$ENABLE" ]]  || enable_repos
 fi
 
 # Always list current status after operations; even when no arguments were passed.
