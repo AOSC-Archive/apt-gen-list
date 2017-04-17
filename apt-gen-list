@@ -79,7 +79,7 @@ function check_config_avail {
     for i in $1; do
         if [[ -f "$SRCCFGPATH/$i.sources" ]]; then
             if [[ ! -w "$SRCCFGPATH/$i.sources" ]]; then
-                echo -e "*** $SRCCFGPATH/$i.sources exists but is NOT writable."
+                echo -e "*** $SRCCFGPATH/$i.sources is NOT writable."
                 p=1
             fi
         else
