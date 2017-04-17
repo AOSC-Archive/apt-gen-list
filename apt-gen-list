@@ -27,13 +27,13 @@ function list_sources {
 --------------------------------------------------------------------------------\
 "
     for i in `find $SRCCFGPATH -type f | sort`; do
-        grep -r "Enabled:\ yes" $i > /dev/null 2>&1
+        grep -r "Enabled:\ yes" $i > /dev/null 2>&1 # Querying repository status (enabled/disabled)
         if [[ $? == 0 ]]; then
             printf "\e[32m$i\e[39m  \t" | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g"
         else
             printf "\e[31m$i\e[39m  \t" | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g"
         fi
-        head -n 1 $i | sed -e "s@#\ @@g"
+        head -n 1 $i | sed -e "s@#\ @@g" # Description
     done
     echo -e "\
 --------------------------------------------------------------------------------
@@ -46,6 +46,7 @@ or mirror is recommended by the vendor, with:
 - the largest number for a rating shouts DO NOT USE.
 "
 
+    # Show a list of supported features to indicate overlay status.
     detect_features
 }
 
@@ -69,6 +70,7 @@ Report bugs to <https://github.com/AOSC-Dev/apt-gen-list/issues>.
 }
 
 # Check configuration file availability.
+# @param $1 enabling / disabling list.
 # FIXME: TOCTOU.
 function check_config_avail {
     local p=0
@@ -118,6 +120,8 @@ function detect_features {
     esac
 }
 
+# Detect AMD64 Overlay requirements, depending on the 'flags' sections in
+# /proc/cpuinfo.
 function _detect_features_amd64 {
     printf "x86 ISA Requirements for Overlay Optimization:"
     for i in avx avx2 bmi bmi2; do
@@ -131,6 +135,7 @@ function _detect_features_amd64 {
     printf "\n"
 }
 
+# Detect ARM Overlay requirements.
 function _detect_features_arm {
     # TODO
     printf "Your ARM device name is "
@@ -140,6 +145,8 @@ function _detect_features_arm {
     fi
 }
 
+# Detect PowerPC Overlay requirements, depending on the 'cpu' sections in
+# /proc/cpuinfo.
 function _detect_features_ppc {
     printf "PowerPC ISA Requirements for Overlay Optimization:"
     for i in altivec; do
@@ -153,6 +160,7 @@ function _detect_features_ppc {
     printf "\n"
 }
 
+# Detect MIPS Overlay requirements.
 function _detect_features_mips {
     printf "MIPS Processor Requirements for Overlay Optimization:"
     grep "cpu\ model" /proc/cpuinfo | grep -i "loongson" > /dev/null 2>&1
@@ -166,6 +174,7 @@ function _detect_features_mips {
 # Enabling specified repositories
 # FIXME: DRY, merge with disable_repos.
 function enable_repos {
+    # If there is an 'all', enabling / disabling all repositories.
     if [[ "$ENABLE" == *all* ]]; then
         ENABLE=`find $SRCCFGPATH -type f | sort | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g" | xargs`
     fi
@@ -178,6 +187,7 @@ function enable_repos {
 
 # Disabling specified repositories
 function disable_repos {
+    # If there is an 'all', enabling / disabling all repositories.
     if [[ "$DISABLE" == *all* ]]; then
         DISABLE=`find $SRCCFGPATH -type f | sort | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g" | xargs`
     fi
@@ -197,6 +207,7 @@ while getopts ":hle:d:" switches; do
             ;;
         e)
             ENABLE+="$OPTARG "
+            # Indicates who goes first, disabling or enabling. This may slightly improve UX.
             [[ ! -z $enable_first || ! -z $disable_first ]] || enable_first=1
             ;;
         d)
@@ -220,6 +231,7 @@ while getopts ":hle:d:" switches; do
     esac
 done
 
+# Display first.
 if [[ $enable_first ]]; then
     [[ -z "$ENABLE" ]]  || echo -e "Enabling:  $ENABLE"
     [[ -z "$DISABLE" ]] || echo -e "Disabling: $DISABLE\n"
