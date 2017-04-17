@@ -122,22 +122,18 @@ function detect_features {
 # Detect AMD64 Overlay requirements, depending on the 'flags' sections in
 # /proc/cpuinfo.
 function _detect_features_amd64 {
-    printf "x86 ISA Requirements for Overlay Optimization:"
-    for i in avx avx2 bmi bmi2; do
-        grep "flags" /proc/cpuinfo | grep "$i" > /dev/null 2>&1
-        if [[ $? == 0 ]]; then
-            printf " \e[32m$i\e[39m"
-        else
-            printf " \e[31m$i\e[39m"
-        fi
-    done
-    printf "\n"
+    grep "flags" /proc/cpuinfo | grep "avx2" > /dev/null 2>&1
+    if [[ $? == 0 ]]; then
+        echo -e "\n\
+Your computer supports \e[32mAdvanced Vector Extensions 2 (AVX2)\e[39m, which means you can
+enable an Overlay to improve your computer's performance."
+    fi
 }
 
 # Detect ARM Overlay requirements.
 function _detect_features_arm {
     # TODO
-    printf "Your ARM device name is "
+    printf "\nYour ARM device name is "
     DEVNAME=`cat /etc/aosc-arm.conf | grep DEVICE_NAME`
     if [[ ! -z $DEVNAME ]]; then
         echo -e "\e[32m$DEVNAME\e[39m"
@@ -147,26 +143,24 @@ function _detect_features_arm {
 # Detect PowerPC Overlay requirements, depending on the 'cpu' sections in
 # /proc/cpuinfo.
 function _detect_features_ppc {
-    printf "PowerPC ISA Requirements for Overlay Optimization:"
-    for i in altivec; do
-        grep "cpu" /proc/cpuinfo | grep "$i" > /dev/null 2>&1
-        if [[ $? == 0 ]]; then
-            printf " \e[32m$i\e[39m"
-        else
-            printf " \e[31m$i\e[39m"
-        fi
-    done
-    printf "\n"
+    grep "cpu" /proc/cpuinfo | grep "altivec" > /dev/null 2>&1
+    if [[ $? == 0 ]]; then
+        echo -e "\n\
+Your computer supports \e[32mAltiVec\e[39m, which means you can enable an Overlay to
+improve your computer's performance."
+    fi
 }
 
 # Detect MIPS Overlay requirements.
 function _detect_features_mips {
-    printf "MIPS Processor Requirements for Overlay Optimization:"
     grep "cpu\ model" /proc/cpuinfo | grep -i "loongson" > /dev/null 2>&1
     if [[ $? == 0 ]]; then
-        echo -e " \e[32mLoongson\e[39m"
-    else
-        echo -e " \e[31mLoongson\e[39m"
+        grep "ASEs\ implemented" /proc/cpuinfo | grep "dsp2" > /dev/null 2>&1
+        if [[ $? == 0 ]]; then
+            echo -e "\n\
+Your computer is a \e[32mLoongson\e[39m machine supporting \e[32mMIPS DSPr2 ASE\e[39m, which means you
+can enable an Overlay to improve your computer's performance."
+        fi
     fi
 }
 
