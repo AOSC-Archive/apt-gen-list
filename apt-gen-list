@@ -22,28 +22,28 @@ SRCCFGPATH="/etc/apt/sources.list.d" # Where the config files are put.
 # Listing available repositories.
 function list_sources {
     echo -e "Available sources:\n"
-    echo -e "Repo Name  \tDescription" # Table Header
+    echo -e "Repo Name\tDescription" # Table Header
     echo -e "\
 --------------------------------------------------------------------------------\
 "
     for i in `find $SRCCFGPATH -type f | sort`; do
         grep -r "Enabled:\ yes" $i > /dev/null 2>&1 # Querying repository status (enabled/disabled)
         if [[ $? == 0 ]]; then
-            printf "\e[32m$i\e[39m  \t" | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g"
+            printf "\e[32m$i\e[39m\t\t" | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g"
         else
-            printf "\e[31m$i\e[39m  \t" | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g"
+            printf "\e[31m$i\e[39m\t\t" | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g"
         fi
         head -n 1 $i | sed -e "s@#\ @@g" # Description
     done
     echo -e "\
 --------------------------------------------------------------------------------
 
-Printed above is a full list of available repositories/mirrors with a rating for
-each repository/mirror. A rating describes how strongly a particular repository
-or mirror is recommended by the vendor, with:
+Printed above is a full list of available repositories/mirrors. Green config
+names indicate \e[32menabled\e[39m repositories while red names indicate \e[31mdisabled\e[39m
+repositories.
 
-- 1 being the strongest
-- the largest number for a rating shouts DO NOT USE.
+Specify the 'Config Name's to enable or disable repositories. Besides these
+names, you can also specify \e[1mall\e[21m to enable or disable all repositories.
 "
 
     # Show a list of supported features to indicate overlay status.
