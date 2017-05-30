@@ -18,6 +18,8 @@
 # Licensed under WTFPL.
 
 SRCCFGPATH="/etc/apt/sources.list.d" # Where the config files are put.
+# SRCCFGPATH="conf"
+SUPPORTS_OVERLAY=false
 
 # Listing available repositories.
 function list_sources {
@@ -60,10 +62,17 @@ Utility for switching AOSC OS APT repository configurations.
   -l    List available repositories.
   -e    Enable repositories.
   -d    Disable repositories.
+  -O    Enable Overlay.
   -h    Display help.
 
 Note: To enable / disable multiple sources, you may either put them in a pair of
 quotation marks, or specify \`-e\` for each repository to operate.
+
+Overlay is a new method to make full use of your computer's CPU and boost your
+system. You can only enable it when your processor supports AOSC OS Overlay,
+otherwise you will suffer from crashes. To see if your processor supports
+Overlay, use \`$0 -l\`. For details, see
+<https://github.com/AOSC-Dev/aosc-os-abbs>.
 
 Written by Junde Yhi <lmy441900@aosc.xyz>
 Report bugs to <https://github.com/AOSC-Dev/apt-gen-list/issues>.
@@ -129,6 +138,7 @@ function _detect_features_amd64 {
         echo -e "\n\
 Your computer supports \e[32mAdvanced Vector Extensions 2 (AVX2)\e[39m, which means you can
 enable an Overlay to improve your computer's performance."
+        SUPPORTS_OVERLAY=true
     fi
 }
 
@@ -139,6 +149,7 @@ function _detect_features_arm {
     DEVNAME=`cat /etc/aosc-arm.conf | grep DEVICE_NAME`
     if [[ ! -z $DEVNAME ]]; then
         echo -e "\e[32m$DEVNAME\e[39m"
+        SUPPORTS_OVERLAY=true
     fi
 }
 
@@ -150,6 +161,7 @@ function _detect_features_ppc {
         echo -e "\n\
 Your computer supports \e[32mAltiVec\e[39m, which means you can enable an Overlay to
 improve your computer's performance."
+        SUPPORTS_OVERLAY=true
     fi
 }
 
@@ -162,8 +174,72 @@ function _detect_features_mips {
             echo -e "\n\
 Your computer is a \e[32mLoongson\e[39m machine supporting \e[32mMIPS DSPr2 ASE\e[39m, which means you
 can enable an Overlay to improve your computer's performance."
+            SUPPORTS_OVERLAY=true
         fi
     fi
+}
+
+# Enabling Overlay.
+# This function will insert a source block on top of available source files.
+function enable_overlays {
+    detect_features
+    # Check if we can really enable Overlay.
+    if [[ $SUPPORTS_OVERLAY == false ]]; then
+        echo -e "Your computer does not support Overlay, so you cannot enable it."
+        exit 1
+    fi
+
+    # Check config availability.
+    check_config_avail "`find $SRCCFGPATH -type f | sort | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g" | xargs`"
+
+    # See if Overlay has been already enabled.
+    for f in $SRCCFGPATH/*.sources; do
+        grep -r "## Overlay enabled by apt-gen-list." $f > /dev/null 2>&1
+        if [[ $? == 0 ]]; then
+            echo -e "It seems that you have enabled Overlay before!"
+            exit 1
+        fi
+    done
+
+    # Different architectures use different overlay directory names in the package repository. For example, on MIPS64:
+    #   https://repo.aosc.io/os-mips64el/os3-dpkg
+    # contains packages compiled with general flags, while
+    #   https://repo.aosc.io/os-mips64el/ls3a2kc+/os3-dpkg
+    # contains packages compiled with `-march=loongson3a -mdsp -mdspr2` (only compatible with Loongson-3A2000C and newer processors).
+    #
+    # Multiple overlays are seperated with spaces, e.g. on AMD64: "haswell+ avx512+"
+
+    case "$(uname -m)" in
+        x86_64|i?86) OVERLAY_DIRNAME="haswell+" ;;
+        armv7l|armv8l) OVERLAY_DIRNAME="overlay" ;;
+        ppc|ppc64) OVERLAY_DIRNAME="altivec" ;;
+        mips|mips64) OVERLAY_DIRNAME="ls3a2kc+" ;;
+        *) OVERLAY_DIRNAME="overlay" ;;
+    esac
+
+    echo -e "We are now enabling Overlay for you..."
+
+    for f in $SRCCFGPATH/*.sources; do
+        head -n 2 $f > $f.tmp
+
+        echo -e "## Overlay enabled by apt-gen-list." >> $f.tmp
+        for i in $OVERLAY_DIRNAME; do
+            grep -r "Enabled: " $f | head -n 1 >> $f.tmp
+            echo -e "Types:   deb" >> $f.tmp
+            grep -r "URIs" $f | grep 'os-$(ARCH)/os3-dpkg' | sed -e "s@os-\$(ARCH)@os-\$(ARCH)/$i@g" >> $f.tmp
+            echo -e "\
+Suites:  /
+By-Hash: force
+" >> $f.tmp
+        done
+
+        echo -e "## General layer." >> $f.tmp
+        tail -n +3 $f >> $f.tmp
+        rm -f $f
+        mv $f.tmp $f
+    done
+
+    echo -e "Seems good. You can now upgrade your system to obtain better performance."
 }
 
 # Enabling specified repositories
@@ -194,7 +270,7 @@ function disable_repos {
 }
 
 # Full map logic.
-while getopts ":hle:d:" switches; do
+while getopts ":hle:d:O" switches; do
     case "$switches" in
         l)
             list_sources
@@ -208,6 +284,10 @@ while getopts ":hle:d:" switches; do
         d)
             DISABLE+="$OPTARG "
             [[ ! -z $enable_first || ! -z $disable_first ]] || disable_first=1
+            ;;
+        O)
+            enable_overlays
+            exit 0
             ;;
         h)
             show_help
