@@ -55,13 +55,15 @@ function show_help {
 
 Usage: $0 -e \"repo1 repo2 ...\" -d \"repo1 repo2 ...\"
 
-Utility for generating sources.list for APT according to available repository
-configurations.
+Utility for switching AOSC OS APT repository configurations.
 
   -l    List available repositories.
   -e    Enable repositories.
   -d    Disable repositories.
   -h    Display help.
+
+Note: To enable / disable multiple sources, you may either put them in a pair of
+quotation marks, or specify \`-e\` for each repository to operate.
 
 Written by Junde Yhi <lmy441900@aosc.xyz>
 Report bugs to <https://github.com/AOSC-Dev/apt-gen-list/issues>.
