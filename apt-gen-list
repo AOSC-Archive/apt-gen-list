@@ -209,6 +209,18 @@ function enable_overlays {
     #
     # Multiple overlays are seperated with spaces, e.g. on AMD64: "haswell+ avx512+"
 
+    # Adapted from autobuild3.
+    case "$(uname -m)" in
+            x86_64) ARCH_NAME=amd64 ;;
+            i?86) ARCH_NAME=i386 ;;
+            armv7l) ARCH_NAME=armel ;;
+            armv8l) ARCH_NAME=arm64 ;;
+            ppc) ARCH_NAME=powerpc ;;
+            ppc64) ARCH_NAME=ppc64 ;;
+            mips64) ARCH_NAME=mips64el ;;
+            *) ARCH_NAME=`uname -m` ;;
+    esac
+
     case "$(uname -m)" in
         x86_64|i?86) OVERLAY_DIRNAME="haswell+" ;;
         armv7l|armv8l) OVERLAY_DIRNAME="overlay" ;;
@@ -237,6 +249,14 @@ Suites:  /
         rm -f $f
         mv $f.tmp $f
     done
+
+    # Generate apt_preference.
+    echo -e "\
+Explanation: Ensure Overlay Packages are installed first.
+Explanation: If you prefer generic packages, downgrade the priority below 500.
+Package: *
+Pin: release l=AOSC OS ($ARCH_NAME/$OVERLAY_DIRNAME)
+Pin-Priority: 995" > `dirname $SRCCFGPATH`/preference
 
     echo -e "Seems good. You can now upgrade your system to obtain better performance."
 }
