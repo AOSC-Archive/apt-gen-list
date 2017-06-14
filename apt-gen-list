@@ -232,22 +232,13 @@ function enable_overlays {
     echo -e "We are now enabling Overlay for you..."
 
     for f in $SRCCFGPATH/*.sources; do
-        head -n 2 $f > $f.tmp
-
-        echo -e "## Overlay enabled by apt-gen-list." >> $f.tmp
+        echo -e "\n## Overlay enabled by apt-gen-list." >> $f
         for i in $OVERLAY_DIRNAME; do
-            grep -r "Enabled: " $f | head -n 1 >> $f.tmp
-            echo -e "Types:   deb" >> $f.tmp
-            grep -r "URIs" $f | grep 'os-$(ARCH)/os3-dpkg' | sed -e "s@os-\$(ARCH)@os-\$(ARCH)/$i@g" >> $f.tmp
-            echo -e "\
-Suites:  /
-" >> $f.tmp
+            grep -r "Enabled: " $f | head -n 1 >> $f
+            echo -e "Types:   deb" >> $f
+            grep -r "URIs" $f | grep 'os-$(ARCH)/os3-dpkg' | sed -e "s@os-\$(ARCH)@os-\$(ARCH)/$i@g" >> $f
+            echo -e "Suites:  /" >> $f
         done
-
-        echo -e "## General layer." >> $f.tmp
-        tail -n +3 $f >> $f.tmp
-        rm -f $f
-        mv $f.tmp $f
     done
 
     # Generate apt_preference.
