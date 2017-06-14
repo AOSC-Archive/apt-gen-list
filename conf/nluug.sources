@@ -4,10 +4,8 @@ Enabled: no
 Types:   deb
 URIs:    http://ftp.nluug.nl/ftp/os/Linux/distr/anthon/os-$(ARCH)/os3-dpkg
 Suites:  /
-By-Hash: force
 
 Enabled: no
 Types:   deb
 URIs:    http://ftp.nluug.nl/ftp/os/Linux/distr/anthon/os-noarch/os3-dpkg
 Suites:  /
-By-Hash: force
