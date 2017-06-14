@@ -229,7 +229,6 @@ function enable_overlays {
             grep -r "URIs" $f | grep 'os-$(ARCH)/os3-dpkg' | sed -e "s@os-\$(ARCH)@os-\$(ARCH)/$i@g" >> $f.tmp
             echo -e "\
 Suites:  /
-By-Hash: force
 " >> $f.tmp
         done
 
