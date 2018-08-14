@@ -1,6 +1,7 @@
 # Tsukuba WIDE Public Mirror service
 
-Enabled: no
-Types:   deb
-URIs:    http://ftp.tsukuba.wide.ad.jp/Linux/anthon/pkgs-apt
-Suites:  main
+Enabled:    no
+Types:      deb
+URIs:       http://ftp.tsukuba.wide.ad.jp/Linux/anthon/pkgs-apt
+Suites:     stable
+Components: main

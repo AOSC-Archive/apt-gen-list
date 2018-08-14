@@ -1,6 +1,7 @@
 # TUNA (Tsinghua University TUNA Association) OSS Mirror
 
-Enabled: yes
-Types:   deb
-URIs:    https://mirrors.tuna.tsinghua.edu.cn/anthon/pkgs-apt
-Suites:  main
+Enabled:    yes
+Types:      deb
+URIs:       https://mirrors.tuna.tsinghua.edu.cn/anthon/pkgs-apt
+Suites:     stable
+Components: main

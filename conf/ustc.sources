@@ -1,6 +1,7 @@
 # USTC (University of Science and Technology of China) OSS Mirror
 
-Enabled: yes
-Types:   deb
-URIs:    https://mirrors.ustc.edu.cn/anthon/pkgs-apt
-Suites:  main
+Enabled:    yes
+Types:      deb
+URIs:       https://mirrors.ustc.edu.cn/anthon/pkgs-apt
+Suites:     stable
+Components: main

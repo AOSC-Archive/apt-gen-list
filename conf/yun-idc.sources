@@ -1,6 +1,7 @@
 # Yun-IDC (Capital Online Data Service LTD.) OSS Mirror
 
-Enabled: no
-Types:   deb
-URIs:    http://mirrors.yun-idc.com/anthon/pkgs-apt
-Suites:  main
+Enabled:    no
+Types:      deb
+URIs:       http://mirrors.yun-idc.com/anthon/pkgs-apt
+Suites:     stable
+Components: main
