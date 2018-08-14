@@ -207,7 +207,7 @@ function enable_overlays {
     #   https://repo.aosc.io/os-mips64el/ls3a2kc+/os3-dpkg
     # contains packages compiled with `-march=loongson3a -mdsp -mdspr2` (only compatible with Loongson-3A2000C and newer processors).
     #
-    # Multiple overlays are seperated with spaces, e.g. on AMD64: "haswell+ avx512+"
+    # Multiple overlays are seperated with spaces, e.g. on AMD64: "avx2+ avx512+"
 
     # Adapted from autobuild3.
     case "$(uname -m)" in
@@ -222,7 +222,7 @@ function enable_overlays {
     esac
 
     case "$(uname -m)" in
-        x86_64|i?86) OVERLAY_DIRNAME="haswell+" ;;
+        x86_64|i?86) OVERLAY_DIRNAME="avx2+" ;;
         armv7l|armv8l) OVERLAY_DIRNAME="overlay" ;;
         ppc|ppc64) OVERLAY_DIRNAME="altivec" ;;
         mips|mips64) OVERLAY_DIRNAME="ls3a2kc+" ;;
