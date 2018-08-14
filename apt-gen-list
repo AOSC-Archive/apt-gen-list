@@ -13,7 +13,7 @@
 # can directly make use of '$(ARCH)' variable in configuration files, so we also
 # make use of this great feature.
 
-# Copyleft Mingcong Bai <jeffbai@aosc.xyz>, 2016.
+# Copyleft Mingcong Bai <jeffbai@aosc.xyz>, 2016, 2018.
 # Copyleft Junde Yhi <lmy441900@aosc.xyz>, 2017.
 # Licensed under WTFPL.
 
