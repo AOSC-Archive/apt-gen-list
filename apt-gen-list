@@ -45,7 +45,7 @@ names indicate \e[32menabled\e[39m repositories while red names indicate \e[31md
 repositories.
 
 Specify the 'Repo Name's to enable or disable repositories. Besides these names,
-you can also specify \e[1mall\e[21m to enable or disable all repositories."
+you can also specify \e[21mall\e[0m to enable or disable all repositories.\e[0m"
 
     # Show a list of supported features to indicate overlay status.
     detect_features
@@ -74,7 +74,7 @@ otherwise you will suffer from crashes. To see if your processor supports
 Overlay, use \`$0 -l\`. For details, see
 <https://github.com/AOSC-Dev/aosc-os-abbs>.
 
-Written by Junde Yhi <lmy441900@aosc.xyz>
+Written by Junde Yhi <lmy441900@aosc.xyz> and Mingcong Bai <jeffbai@aosc.io>.
 Report bugs to <https://github.com/AOSC-Dev/apt-gen-list/issues>.
 "
 }
@@ -136,7 +136,7 @@ function _detect_features_amd64 {
     grep "flags" /proc/cpuinfo | grep "avx2" > /dev/null 2>&1
     if [[ $? == 0 ]]; then
         echo -e "\n\
-Your computer supports \e[32mAdvanced Vector Extensions 2 (AVX2)\e[39m, which means you can
+Your computer supports \e[1;32mAdvanced Vector Extensions 2 (AVX2)\e[0m, which means you can
 enable an Overlay to improve your computer's performance."
         SUPPORTS_OVERLAY=true
     fi
@@ -159,7 +159,7 @@ function _detect_features_ppc {
     grep "cpu" /proc/cpuinfo | grep "altivec" > /dev/null 2>&1
     if [[ $? == 0 ]]; then
         echo -e "\n\
-Your computer supports \e[32mAltiVec\e[39m, which means you can enable an Overlay to
+Your computer supports \e[1;32mAltiVec\e[0m, which means you can enable an Overlay to
 improve your computer's performance."
         SUPPORTS_OVERLAY=true
     fi
@@ -172,7 +172,7 @@ function _detect_features_mips {
         grep "ASEs\ implemented" /proc/cpuinfo | grep "dsp2" > /dev/null 2>&1
         if [[ $? == 0 ]]; then
             echo -e "\n\
-Your computer is a \e[32mLoongson\e[39m machine supporting \e[32mMIPS DSPr2 ASE\e[39m, which means you
+Your computer is a \e[1;32mLoongson\e[0m machine supporting \e[32mMIPS DSPr2 ASE\e[39m, which means you
 can enable an Overlay to improve your computer's performance."
             SUPPORTS_OVERLAY=true
         fi
