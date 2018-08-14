@@ -2,10 +2,5 @@
 
 Enabled: no
 Types:   deb
-URIs:    http://mirror.lzu.edu.cn/anthon/os-$(ARCH)/os3-dpkg
-Suites:  /
-
-Enabled: no
-Types:   deb
-URIs:    http://mirror.lzu.edu.cn/anthon/os-noarch/os3-dpkg
-Suites:  /
+URIs:    http://mirror.lzu.edu.cn/anthon/pkgs-apt
+Suites:  main

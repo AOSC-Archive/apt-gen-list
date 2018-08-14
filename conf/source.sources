@@ -2,10 +2,5 @@
 
 Enabled: no
 Types:   deb
-URIs:    https://repo.aosc.io/os-$(ARCH)/os3-dpkg
-Suites:  /
-
-Enabled: no
-Types:   deb
-URIs:    https://repo.aosc.io/os-noarch/os3-dpkg
-Suites:  /
+URIs:    https://repo.aosc.io/pkgs-apt
+Suites:  main

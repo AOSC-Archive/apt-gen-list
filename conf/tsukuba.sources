@@ -2,10 +2,5 @@
 
 Enabled: no
 Types:   deb
-URIs:    http://ftp.tsukuba.wide.ad.jp/Linux/anthon/os-$(ARCH)/os3-dpkg
-Suites:  /
-
-Enabled: no
-Types:   deb
-URIs:    http://ftp.tsukuba.wide.ad.jp/Linux/anthon/os-noarch/os3-dpkg
-Suites:  /
+URIs:    http://ftp.tsukuba.wide.ad.jp/Linux/anthon/pkgs-apt
+Suites:  main

@@ -2,10 +2,5 @@
 
 Enabled: no
 Types:   deb
-URIs:    http://mirrors.yun-idc.com/anthon/os-$(ARCH)/os3-dpkg
-Suites:  /
-
-Enabled: no
-Types:   deb
-URIs:    http://mirrors.yun-idc.com/anthon/os-noarch/os3-dpkg
-Suites:  /
+URIs:    http://mirrors.yun-idc.com/anthon/pkgs-apt
+Suites:  main
