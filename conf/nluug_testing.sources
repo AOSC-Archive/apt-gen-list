@@ -1,0 +1,7 @@
+# NLUUG (formerly known as The Netherlands Local Unix User Group) OSS Mirror
+
+Enabled:    no
+Types:      deb
+URIs:       http://ftp.nluug.nl/ftp/os/Linux/distr/anthon/pkgs-apt
+Suites:     testing
+Components: main
