@@ -1,0 +1,129 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2018-09-07 15:49+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: apt-gen-list:25
+msgid ""
+"\n"
+"Usage: apt-gen-list [stdout] [m [-|+]MIRROR1 ...] [c [-|+]COMP1 ...] [b BRANCH]\n"
+"       apt-gen-list now\n"
+"       apt-gen-list avail\n"
+"       apt-gen-list help\n"
+"\n"
+"Keywords:\n"
+"    \"mirror\" is equivalent to \"m\";\n"
+"    \"branch\" is equivalent to \"b\";\n"
+"    \"component\" is equivalent to \"c\".\n"
+"\n"
+"Examples:\n"
+"    1. To set mirrors to \"origin\" and \"baz\":\n"
+"        # apt-gen-list mirror origin baz\n"
+"\n"
+"    2. To disable mirror \"origin\":\n"
+"        # apt-gen-list mirror -origin\n"
+"\n"
+"    3. To enable component \"opt-avx2\" and disable \"bsp-sunxi\":\n"
+"        # apt-gen-list c +opt-avx2 -bsp-sunxi\n"
+"\n"
+"    4. To set the branch to \"testing\":\n"
+"        # apt-gen-list b testing\n"
+"\n"
+"    5. To set the branch to \"testing\" and enable component \"bsp-sunxi\":\n"
+"        # apt-gen-list branch testing component +bsp-sunxi\n"
+"\n"
+"    6. To disable component \"main\":\n"
+"        # apt-gen-list c -main\n"
+"        => This is a no-op because \"main\" is mandatory\n"
+"\n"
+"    7. To reset everything to default values:\n"
+"        # apt-gen-list m b c\n"
+"        => It is equivalent to\n"
+"        # apt-gen-list mirror origin branch stable component main\n"
+"\n"
+"    8. To re-generate sources.list:\n"
+"        # apt-gen-list\n"
+"\n"
+"Report bugs to <%s>.\n"
+msgstr ""
+
+#: apt-gen-list:109
+msgid "You cannot change and set \"%s\" at the same time: "
+msgstr ""
+
+#: apt-gen-list:133
+msgid "You may only specify one branch."
+msgstr ""
+
+#: apt-gen-list:151
+msgid "Mirror \"%s\" does not exist and will be removed."
+msgstr ""
+
+#: apt-gen-list:164
+msgid "It seems that you are trying to add/delete a branch, please specify a branch directly."
+msgstr ""
+
+#: apt-gen-list:168
+msgid "Branch \"%s\" does not exist."
+msgstr ""
+
+#: apt-gen-list:177
+msgid "Component \"%s\" does not exist and will be removed."
+msgstr ""
+
+#: apt-gen-list:185
+msgid "mirrors: %s"
+msgstr ""
+
+#: apt-gen-list:186
+msgid "components: %s"
+msgstr ""
+
+#: apt-gen-list:187
+msgid "branch: %s"
+msgstr ""
+
+#: apt-gen-list:193
+msgid "== Branches =="
+msgstr ""
+
+#: apt-gen-list:199
+msgid "== Components =="
+msgstr ""
+
+#: apt-gen-list:204
+msgid "== Mirrors =="
+msgstr ""
+
+#: apt-gen-list:244
+msgid "%s does not exist."
+msgstr ""
+
+#: apt-gen-list:285
+msgid "%d error(s) occurred while parsing command line arguments."
+msgstr ""
+
+#: apt-gen-list:319
+msgid "Updated %s."
+msgstr ""
+
+#: apt-gen-list:322
+msgid "Failed to update %s: permission denied."
+msgstr ""
+
+#: apt-gen-list:335
+msgid "Failed to save settings to %s: permission denied."
+msgstr ""
+
