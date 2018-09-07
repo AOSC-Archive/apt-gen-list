@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2018-09-07 15:49+0800\n"
+"POT-Creation-Date: 2018-09-07 14:36-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: apt-gen-list:25
+#: apt-gen-list:24
 msgid ""
 "\n"
 "Usage: apt-gen-list [stdout] [m [-|+]MIRROR1 ...] [c [-|+]COMP1 ...] [b BRANCH]\n"
@@ -59,71 +59,75 @@ msgid ""
 "Report bugs to <%s>.\n"
 msgstr ""
 
-#: apt-gen-list:109
+#: apt-gen-list:108
 msgid "You cannot change and set \"%s\" at the same time: "
 msgstr ""
 
-#: apt-gen-list:133
+#: apt-gen-list:132
 msgid "You may only specify one branch."
 msgstr ""
 
-#: apt-gen-list:151
+#: apt-gen-list:150
 msgid "Mirror \"%s\" does not exist and will be removed."
 msgstr ""
 
-#: apt-gen-list:164
+#: apt-gen-list:163
 msgid "It seems that you are trying to add/delete a branch, please specify a branch directly."
 msgstr ""
 
-#: apt-gen-list:168
+#: apt-gen-list:167
 msgid "Branch \"%s\" does not exist."
 msgstr ""
 
-#: apt-gen-list:177
+#: apt-gen-list:176
 msgid "Component \"%s\" does not exist and will be removed."
 msgstr ""
 
-#: apt-gen-list:185
+#: apt-gen-list:184
 msgid "mirrors: %s"
 msgstr ""
 
-#: apt-gen-list:186
+#: apt-gen-list:185
 msgid "components: %s"
 msgstr ""
 
-#: apt-gen-list:187
+#: apt-gen-list:186
 msgid "branch: %s"
 msgstr ""
 
-#: apt-gen-list:193
+#: apt-gen-list:192
 msgid "== Branches =="
 msgstr ""
 
-#: apt-gen-list:199
+#: apt-gen-list:198
 msgid "== Components =="
 msgstr ""
 
-#: apt-gen-list:204
+#: apt-gen-list:203
 msgid "== Mirrors =="
 msgstr ""
 
-#: apt-gen-list:244
+#: apt-gen-list:243
 msgid "%s does not exist."
 msgstr ""
 
-#: apt-gen-list:285
+#: apt-gen-list:268
+msgid "Unknown parameter, please consult `apt-gen-list help` for usage details."
+msgstr ""
+
+#: apt-gen-list:287
 msgid "%d error(s) occurred while parsing command line arguments."
 msgstr ""
 
-#: apt-gen-list:319
+#: apt-gen-list:321
 msgid "Updated %s."
 msgstr ""
 
-#: apt-gen-list:322
+#: apt-gen-list:324
 msgid "Failed to update %s: permission denied."
 msgstr ""
 
-#: apt-gen-list:335
+#: apt-gen-list:337
 msgid "Failed to save settings to %s: permission denied."
 msgstr ""
 

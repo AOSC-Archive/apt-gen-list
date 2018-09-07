@@ -5,19 +5,19 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: apt-gen-list\n"
-"POT-Creation-Date: 2018-09-07 15:49+0800\n"
-"PO-Revision-Date: 2018-09-07 16:36+0800\n"
+"POT-Creation-Date: 2018-09-07 14:36-0500\n"
+"PO-Revision-Date: 2018-09-07 14:37-0500\n"
+"Last-Translator: Mingcong Bai <jeffbai@aosc.io>\n"
 "Language-Team: https://github.com/AOSC-Dev\n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 "X-Generator: Poedit 2.0.9\n"
-"Last-Translator: Daming Yang <lion@aosc.io>\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"Language: zh_CN\n"
 
-#: apt-gen-list:25
+#: apt-gen-list:24
 msgid ""
 "\n"
 "Usage: apt-gen-list [stdout] [m [-|+]MIRROR1 ...] [c [-|+]COMP1 ...] [b "
@@ -102,72 +102,77 @@ msgstr ""
 "\n"
 "将错误报告至 <%s>。\n"
 
-#: apt-gen-list:109
+#: apt-gen-list:108
 msgid "You cannot change and set \"%s\" at the same time: "
 msgstr "您不能同时“设置”并“修改”%s："
 
-#: apt-gen-list:133
+#: apt-gen-list:132
 msgid "You may only specify one branch."
 msgstr "您只能指定一条分支。"
 
-#: apt-gen-list:151
+#: apt-gen-list:150
 msgid "Mirror \"%s\" does not exist and will be removed."
 msgstr "不存在 %s 镜像源，删去该项。"
 
-#: apt-gen-list:164
+#: apt-gen-list:163
 msgid ""
 "It seems that you are trying to add/delete a branch, please specify a branch "
 "directly."
 msgstr "您似乎想要启用或禁用分支——请直接设置一条分支。"
 
-#: apt-gen-list:168
+#: apt-gen-list:167
 msgid "Branch \"%s\" does not exist."
 msgstr "不存在 %s 分支。"
 
-#: apt-gen-list:177
+#: apt-gen-list:176
 msgid "Component \"%s\" does not exist and will be removed."
 msgstr "不存在 %s 组件，删去该项。"
 
-#: apt-gen-list:185
+#: apt-gen-list:184
 msgid "mirrors: %s"
 msgstr "镜像源：%s"
 
-#: apt-gen-list:186
+#: apt-gen-list:185
 msgid "components: %s"
 msgstr "组件：%s"
 
-#: apt-gen-list:187
+#: apt-gen-list:186
 msgid "branch: %s"
 msgstr "分支：%s"
 
-#: apt-gen-list:193
+#: apt-gen-list:192
 msgid "== Branches =="
 msgstr "== 分支 =="
 
-#: apt-gen-list:199
+#: apt-gen-list:198
 msgid "== Components =="
 msgstr "== 组件 =="
 
-#: apt-gen-list:204
+#: apt-gen-list:203
 msgid "== Mirrors =="
 msgstr "== 镜像源 =="
 
-#: apt-gen-list:244
+#: apt-gen-list:243
 msgid "%s does not exist."
 msgstr "不存在 %s。"
 
-#: apt-gen-list:285
+#: apt-gen-list:268
+msgid ""
+"Unknown parameter, please consult `apt-gen-list help` for usage details."
+msgstr "未知参数，请参见 `apt-gen-list help` 以获取具体用法。"
+
+#: apt-gen-list:287
 msgid "%d error(s) occurred while parsing command line arguments."
 msgstr "解析命令行时发生了 %s 个错误。"
 
-#: apt-gen-list:319
+#: apt-gen-list:321
 msgid "Updated %s."
 msgstr "%s 已更新。"
 
-#: apt-gen-list:322
+#: apt-gen-list:324
 msgid "Failed to update %s: permission denied."
 msgstr "无法更新 %s：权限不足。"
 
-#: apt-gen-list:335
+#: apt-gen-list:337
 msgid "Failed to save settings to %s: permission denied."
 msgstr "无法保存设定到 %s：权限不足。"
