@@ -1,7 +1,0 @@
-# AOSC source repository (hosted by BlueT, and National Chi Nan University)
-
-Enabled:    no
-Types:      deb
-URIs:       https://repo.aosc.io/pkgs-apt
-Suites:     testing
-Components: main

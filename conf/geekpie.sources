@@ -1,7 +1,0 @@
-# Geekpie Association (ShanghaiTech University) OSS Mirror
-
-Enabled:    no
-Types:      deb
-URIs:       https://mirrors.geekpie.org/aosc/pkgs-apt
-Suites:     stable
-Components: main

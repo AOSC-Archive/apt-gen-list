@@ -1,337 +1,335 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
+# Copyright (C) 2018 Lion Yang <lion@aosc.io>
+#
 # Utility for generating sources.list for APT according to available
 # repository configurations.
-
-# Completely rewritten by Junde Yhi. This new version requires:
 #
-# - All config files should be put in /etc/apt/sources.list.d, since all files
-#   will be modified in-place.
-# - All config files should use the new 'deb822' style supported by new APT.
-#
-# Architecture detection is not done by this script; instead, new version of APT
-# can directly make use of '$(ARCH)' variable in configuration files, so we also
-# make use of this great feature.
-
-# Copyleft Mingcong Bai <jeffbai@aosc.xyz>, 2016, 2018.
-# Copyleft Junde Yhi <lmy441900@aosc.xyz>, 2017.
 # Licensed under WTFPL.
 
-SRCCFGPATH="/etc/apt/sources.list.d" # Where the config files are put.
-# SRCCFGPATH="conf"
-SUPPORTS_OVERLAY=false
+import gettext
+import json
+import logging
+import os
+import sys
+import yaml
 
-# Listing available repositories.
-function list_sources {
-    echo -e "Available sources:\n"
-    echo -e "Repo Name\tDescription" # Table Header
-    echo -e "\
---------------------------------------------------------------------------------\
-"
-    for i in `find $SRCCFGPATH -type f | sort`; do
-        grep -r "Enabled:\ yes" $i > /dev/null 2>&1 # Querying repository status (enabled/disabled)
-        if [[ $? == 0 ]]; then
-            printf "\e[32m$i\e[39m\t\t" | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g"
-        else
-            printf "\e[31m$i\e[39m\t\t" | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g"
-        fi
-        head -n 1 $i | sed -e "s@#\ @@g" # Description
-    done
-    echo -e "\
---------------------------------------------------------------------------------
+CONF_PATH = '/var/lib/apt/gen/status.json'
+REPO_DATA_DIR = '/usr/share/distro-repository-data'
+DEBS_URL = '/debs'
+REPORT_BUG = 'https://github.com/AOSC-Dev/apt-gen-list/issues'
 
-Printed above is a full list of available repositories/mirrors. Green config
-names indicate \e[32menabled\e[39m repositories while red names indicate \e[31mdisabled\e[39m
-repositories.
+t = gettext.translation('apt-gen-list')
+_ = t.gettext
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+HELP_MESSAGE = _('''
+Usage: apt-gen-list [stdout] [m [-|+]MIRROR1 ...] [c [-|+]COMP1 ...] [b BRANCH]
+       apt-gen-list now
+       apt-gen-list avail
+       apt-gen-list help
 
-Specify the 'Repo Name's to enable or disable repositories. Besides these names,
-you can also specify \e[21mall\e[0m to enable or disable all repositories.\e[0m"
+Keywords:
+    "mirror" is equivalent to "m";
+    "branch" is equivalent to "b";
+    "component" is equivalent to "c".
 
-    # Show a list of supported features to indicate overlay status.
-    detect_features
+Examples:
+    1. To set mirrors to "origin" and "baz":
+        # apt-gen-list mirror origin baz
+
+    2. To disable mirror "origin":
+        # apt-gen-list mirror -origin
+
+    3. To enable component "opt-avx2" and disable "bsp-sunxi":
+        # apt-gen-list c +opt-avx2 -bsp-sunxi
+
+    4. To set the branch to "testing":
+        # apt-gen-list b testing
+
+    5. To set the branch to "testing" and enable component "bsp-sunxi":
+        # apt-gen-list branch testing component +bsp-sunxi
+
+    6. To disable component "main":
+        # apt-gen-list c -main
+        => This is a no-op because "main" is mandatory
+
+    7. To reset everything to default values:
+        # apt-gen-list m b c
+        => It is equivalent to
+        # apt-gen-list mirror origin branch stable component main
+
+    8. To re-generate sources.list:
+        # apt-gen-list
+
+Report bugs to <%s>.
+''') % REPORT_BUG
+
+MIRRORS_PATH = REPO_DATA_DIR + '/mirrors.yml'
+BRANCHES_PATH = REPO_DATA_DIR + '/branches.yml'
+COMPS_PATH = REPO_DATA_DIR + '/comps.yml'
+OUTPUT_PATH = '/etc/apt/sources.list'
+conf = {}
+mirrors = {}
+branches = {}
+components = {}
+full_args = sys.argv[1:]
+parser_failed = 0
+
+
+def create_set(key: str):
+    if key not in conf:
+        # Make a new set()
+        conf[key] = set()
+    else:
+        # Convert to set, because json can only have list
+        conf[key] = set(conf[key])
+
+
+def create_str(key: str):
+    if key not in conf:
+        conf[key] = ''
+
+
+def recover_list_key():
+    for key in conf:
+        if type(conf[key]) is set:
+            conf[key] = list(conf[key])
+            conf[key].sort()
+
+
+def is_change_or_set(key: str, ops: list):
+    global parser_failed
+    mode = 'unknown'
+    for op in ops:  # Check the consistency
+        is_change = op.startswith('+') or op.startswith('-')
+        if mode == 'unknown':
+            mode = 'change' if is_change else 'set'
+        if is_change ^ (mode == 'change'):
+            logging.error(
+                _('You cannot change and set "%s" at the same time: ') + ' '.join(ops),
+                key)
+            parser_failed += 1
+    return mode
+
+
+def modify(key: str, ops: list):
+    if is_change_or_set(key, ops) == 'change':
+        for op in ops:
+            if op.startswith('+'):
+                conf[key].add(op[1:])
+            else:
+                conf[key].remove(op[1:])
+    else:
+        conf[key] = set(ops)
+
+
+def parse_mirror(args: list):
+    modify('mirror', args)
+
+
+def parse_branch(args: list):
+    global parser_failed
+    if len(args) > 1:
+        logging.error(_('You may only specify one branch.'))
+        parser_failed += 1
+        return
+    if len(args) == 0:
+        conf['branch'] == ''
+    else:
+        conf['branch'] = args[0]
+
+
+def parse_comp(args: list):
+    modify('component', args)
+
+
+def sanitize_mirror():
+    conf_mirror = conf['mirror'].copy()
+    for mirror in conf['mirror']:
+        if mirror not in mirrors:
+            logging.warn(
+                _('Mirror "%s" does not exist and will be removed.'), mirror)
+            conf_mirror.remove(mirror)
+    conf['mirror'] = conf_mirror
+    if len(conf['mirror']) == 0:
+        # There must be at least one mirror. Use "origin"
+        conf['mirror'].add('origin')
+
+
+def sanitize_branch():
+    # branch is mandatory
+    branch = conf['branch']
+    if branch.startswith('+') or branch.startswith('-'):
+        logging.warn(
+            _('It seems that you are trying to add/delete a branch, please specify a branch directly.'))
+    if branch == '':
+        conf['branch'] = 'stable'
+    if conf['branch'] not in branches:
+        logging.error(_('Branch "%s" does not exist.'), branch)
+        exit(3)
+
+
+def sanitize_component():
+    conf_comp = conf['component'].copy()
+    for comp in conf['component']:
+        if comp not in components:
+            logging.warn(
+                _('Component "%s" does not exist and will be removed.'), comp)
+            conf_comp.remove(comp)
+    conf['component'] = conf_comp
+    # "main" is mandatory
+    conf['component'].add('main')
+
+
+def show_status():
+    print(_('mirrors: %s') % (' '.join(sorted(conf['mirror']))))
+    print(_('components: %s') % (' '.join(sorted(conf['component']))))
+    print(_('branch: %s') % conf['branch'])
+
+
+def show_available():
+    def p(k: str, d: str):
+        print('[%s] %s' % (k.rjust(10), d))
+    print(_('== Branches =='))
+    for branch_name in branches:
+        branch = branches[branch_name]
+        desc = branch['desc'].strip()
+        p(branch_name, desc)
+    print()
+    print(_('== Components =='))
+    for comp_name in components:
+        desc = components[comp_name]
+        p(comp_name, desc)
+    print()
+    print(_('== Mirrors =='))
+    for mirror_name in mirrors:
+        mirror = mirrors[mirror_name]
+        desc_short = mirror['desc'].split('\n')[0].strip()
+        p(mirror_name, desc_short)
+
+
+def show_help():
+    print(HELP_MESSAGE.strip('\n'))
+
+keywords = {
+    'm': parse_mirror,
+    'mirror': parse_mirror,
+    'b': parse_branch,
+    'branch': parse_branch,
+    'c': parse_comp,
+    'component': parse_comp,
 }
 
-# Help info.
-function show_help {
-    echo -e "\
+conf_str = ''
+if os.path.exists(CONF_PATH):
+    with open(CONF_PATH, 'r') as conf_file:
+        conf_str = conf_file.read()
+conf_str = conf_str.strip()
 
-Usage: $0 -e \"repo1 repo2 ...\" -d \"repo1 repo2 ...\"
+if conf_str == '':
+    conf_str = '{}'
 
-Utility for switching AOSC OS APT repository configurations.
+conf = json.loads(conf_str)
+create_set('mirror')
+create_str('branch')
+create_set('component')
 
-  -l    List available repositories.
-  -e    Enable repositories.
-  -d    Disable repositories.
-  -O    Enable Overlay.
-  -h    Display help.
 
-Note: To enable / disable multiple sources, you may either put them in a pair of
-quotation marks, or specify \`-e\` for each repository to operate.
+def read_yaml_wrapper(path: str):
+    if os.path.exists(path):
+        with open(path, 'r') as mirrors_file:
+            return yaml.safe_load(mirrors_file)
+    else:
+        logging.error(
+            _('%s does not exist.'), MIRRORS_PATH)
+        exit(2)
+mirrors = read_yaml_wrapper(MIRRORS_PATH)
+branches = read_yaml_wrapper(BRANCHES_PATH)
+components = read_yaml_wrapper(COMPS_PATH)
 
-Overlay is a new method to make full use of your computer's CPU and boost your
-system. You can only enable it when your processor supports AOSC OS Overlay,
-otherwise you will suffer from crashes. To see if your processor supports
-Overlay, use \`$0 -l\`. For details, see
-<https://github.com/AOSC-Dev/aosc-os-abbs>.
+sanitize_mirror()
+sanitize_branch()
+sanitize_component()
 
-Written by Junde Yhi <lmy441900@aosc.xyz> and Mingcong Bai <jeffbai@aosc.io>.
-Report bugs to <https://github.com/AOSC-Dev/apt-gen-list/issues>.
-"
-}
+to_stdout = False
+if len(full_args) > 0:
+    if full_args[0] == 'stdout':
+        to_stdout = True
+        full_args = full_args[1:]
+    elif full_args[0] == 'now':
+        show_status()
+        exit()
+    elif full_args[0] == 'avail':
+        show_available()
+        exit()
+    elif full_args[0] == 'help':
+        show_help()
+        exit()
 
-# Check configuration file availability.
-# @param $1 enabling / disabling list.
-# FIXME: TOCTOU.
-function check_config_avail {
-    local p=0
-    local e=0
+current_function = None
+pending_args = []
+for arg in full_args:
+    if arg not in keywords:
+        pending_args.append(arg)
+    else:
+        if current_function is not None:
+            current_function(pending_args)
+        pending_args = []
+        current_function = keywords[arg]
 
-    for i in $1; do
-        if [[ -f "$SRCCFGPATH/$i.sources" ]]; then
-            if [[ ! -w "$SRCCFGPATH/$i.sources" ]]; then
-                echo -e "*** $SRCCFGPATH/$i.sources is NOT writable."
-                p=1
-            fi
-        else
-            echo -e "*** $SRCCFGPATH/$i.sources does NOT exist."
-            e=1
-        fi
-    done
+if current_function is not None:
+    current_function(pending_args)
 
-    if [[ $p == 1 ]]; then
-        if [[ $(id -u) != "0" ]]; then
-            echo -e "\n\
-Some configurations are not writable because I do not have sufficient privilege.
-Use \`sudo !!\` to try again."
-            exit 1
-        else
-            echo -e "\n\
-Some configurations are not writable; they may have wrong modes on them. You may
-want to check them by yourself."
-            exit 1
-        fi
-    fi
+if parser_failed > 0:
+    logging.info(
+        _('%d error(s) occurred while parsing command line arguments.'),
+        parser_failed)
+    exit(2)
 
-    if [[ $e == 1 ]]; then
-        echo -e "\n\
-Some configurations are missing; maybe you have specified wrong config names?"
-        exit 2
-    fi
-}
+sanitize_mirror()
+sanitize_branch()
+sanitize_component()
+recover_list_key()
 
-# Detect platform features that is needed for AOSC optimized overlay.
-function detect_features {
-    case "$(uname -m)" in
-        x86_64|i?86) _detect_features_amd64 ;;
-        armv7l|armv8l) _detect_features_arm ;;
-        ppc|ppc64) _detect_features_ppc ;;
-        mips|mips64) _detect_features_mips ;;
-        *) echo -e "This architecture is not supported by AOSC OS." ;;
-    esac
-}
+suites = branches[conf['branch']]['suites']
+comps = ' '.join(conf['component'])
+output = ''
+for index, mirror_name in enumerate(conf['mirror']):
+    if index > 0:
+        output += '\n'
+    if mirror_name not in mirrors:
+        continue
+    mirror = mirrors[mirror_name]
+    mirror_url = mirror['url']
+    mirror_desc = mirror['desc'].strip().split('\n')
+    if mirror_url.endswith('/'):
+        mirror_url = mirror_url[:-1]
+    output += '# [%s] %s\n' % (mirror_name, mirror_desc[0])
+    if len(mirror_desc) > 1:
+        output += '# %s\n' % ('\n# '.join(mirror_desc[1:]))
+    for suite in suites:
+        output += 'deb %s%s %s %s\n' % (mirror_url, DEBS_URL, suite, comps)
 
-# Detect AMD64 Overlay requirements, depending on the 'flags' sections in
-# /proc/cpuinfo.
-function _detect_features_amd64 {
-    grep "flags" /proc/cpuinfo | grep "avx2" > /dev/null 2>&1
-    if [[ $? == 0 ]]; then
-        echo -e "\n\
-Your computer supports \e[1;32mAdvanced Vector Extensions 2 (AVX2)\e[0m, which means you can
-enable an Overlay to improve your computer's performance."
-        SUPPORTS_OVERLAY=true
-    fi
-}
+if to_stdout:
+    print(output, end='')
+else:
+    try:
+        with open(OUTPUT_PATH, 'w') as f:
+            f.write(output)
+        logging.info(_('Updated %s.'), OUTPUT_PATH)
+    except PermissionError as e:
+        logging.error(
+            _('Failed to update %s: permission denied.'), OUTPUT_PATH)
+        exit(1)
 
-# Detect ARM Overlay requirements.
-function _detect_features_arm {
-    # TODO
-    printf "\nYour ARM device name is "
-    DEVNAME=`cat /etc/aosc-arm.conf | grep DEVICE_NAME`
-    if [[ ! -z $DEVNAME ]]; then
-        echo -e "\e[32m$DEVNAME\e[39m"
-        SUPPORTS_OVERLAY=true
-    fi
-}
-
-# Detect PowerPC Overlay requirements, depending on the 'cpu' sections in
-# /proc/cpuinfo.
-function _detect_features_ppc {
-    grep "cpu" /proc/cpuinfo | grep "altivec" > /dev/null 2>&1
-    if [[ $? == 0 ]]; then
-        echo -e "\n\
-Your computer supports \e[1;32mAltiVec\e[0m, which means you can enable an Overlay to
-improve your computer's performance."
-        SUPPORTS_OVERLAY=true
-    fi
-}
-
-# Detect MIPS Overlay requirements.
-function _detect_features_mips {
-    grep "cpu\ model" /proc/cpuinfo | grep -i "loongson" > /dev/null 2>&1
-    if [[ $? == 0 ]]; then
-        grep "ASEs\ implemented" /proc/cpuinfo | grep "dsp2" > /dev/null 2>&1
-        if [[ $? == 0 ]]; then
-            echo -e "\n\
-Your computer is a \e[1;32mLoongson\e[0m machine supporting \e[32mMIPS DSPr2 ASE\e[39m, which means you
-can enable an Overlay to improve your computer's performance."
-            SUPPORTS_OVERLAY=true
-        fi
-    fi
-}
-
-# Enabling Overlay.
-# This function will insert a source block on top of available source files.
-function enable_overlays {
-    detect_features
-    # Check if we can really enable Overlay.
-    if [[ $SUPPORTS_OVERLAY == false ]]; then
-        echo -e "Your computer does not support Overlay, so you cannot enable it."
-        exit 1
-    fi
-
-    # Check config availability.
-    check_config_avail "`find $SRCCFGPATH -type f | sort | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g" | xargs`"
-
-    # See if Overlay has been already enabled.
-    for f in $SRCCFGPATH/*.sources; do
-        grep -r "## Overlay enabled by apt-gen-list." $f > /dev/null 2>&1
-        if [[ $? == 0 ]]; then
-            echo -e "It seems that you have enabled Overlay before!"
-            exit 1
-        fi
-    done
-
-    # Different architectures use different overlay directory names in the package repository. For example, on MIPS64:
-    #   https://repo.aosc.io/os-mips64el/os3-dpkg
-    # contains packages compiled with general flags, while
-    #   https://repo.aosc.io/os-mips64el/ls3a2kc+/os3-dpkg
-    # contains packages compiled with `-march=loongson3a -mdsp -mdspr2` (only compatible with Loongson-3A2000C and newer processors).
-    #
-    # Multiple overlays are seperated with spaces, e.g. on AMD64: "avx2+ avx512+"
-
-    # Adapted from autobuild3.
-    case "$(uname -m)" in
-            x86_64) ARCH_NAME=amd64 ;;
-            i?86) ARCH_NAME=i386 ;;
-            armv7l) ARCH_NAME=armel ;;
-            armv8l) ARCH_NAME=arm64 ;;
-            ppc) ARCH_NAME=powerpc ;;
-            ppc64) ARCH_NAME=ppc64 ;;
-            mips64) ARCH_NAME=mips64el ;;
-            *) ARCH_NAME=`uname -m` ;;
-    esac
-
-    case "$(uname -m)" in
-        x86_64|i?86) OVERLAY_DIRNAME="avx2+" ;;
-        armv7l|armv8l) OVERLAY_DIRNAME="overlay" ;;
-        ppc|ppc64) OVERLAY_DIRNAME="altivec" ;;
-        mips|mips64) OVERLAY_DIRNAME="ls3a2kc+" ;;
-        *) OVERLAY_DIRNAME="overlay" ;;
-    esac
-
-    echo -e "We are now enabling Overlay for you..."
-
-    for f in $SRCCFGPATH/*.sources; do
-        echo -e "\n## Overlay enabled by apt-gen-list." >> $f
-        for i in $OVERLAY_DIRNAME; do
-            grep -r "Enabled: " $f | head -n 1 >> $f
-            echo -e "Types:   deb" >> $f
-            grep -r "URIs" $f | grep 'os-$(ARCH)/os3-dpkg' | sed -e "s@os-\$(ARCH)@os-\$(ARCH)/$i@g" >> $f
-            echo -e "Suites:  /" >> $f
-        done
-    done
-
-    # Generate apt_preference.
-    echo -e "\
-Explanation: Ensure Overlay Packages are installed first.
-Explanation: If you prefer generic packages, downgrade the priority below 500.
-Package: *
-Pin: release l=AOSC OS ($ARCH_NAME/$OVERLAY_DIRNAME)
-Pin-Priority: 995" > `dirname $SRCCFGPATH`/preference
-
-    echo -e "Seems good. You can now upgrade your system to obtain better performance."
-}
-
-# Enabling specified repositories
-# FIXME: DRY, merge with disable_repos.
-function enable_repos {
-    # If there is an 'all', enabling / disabling all repositories.
-    if [[ "$ENABLE" == *all* ]]; then
-        ENABLE=`find $SRCCFGPATH -type f | sort | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g" | xargs`
-    fi
-
-    check_config_avail "$ENABLE"
-    for i in $ENABLE; do
-        sed --in-place --expression="s@Enabled:\ no@Enabled:\ yes@g" $SRCCFGPATH/$i.sources
-    done
-}
-
-# Disabling specified repositories
-function disable_repos {
-    # If there is an 'all', enabling / disabling all repositories.
-    if [[ "$DISABLE" == *all* ]]; then
-        DISABLE=`find $SRCCFGPATH -type f | sort | sed -e "s@$SRCCFGPATH/@@g" | sed -e "s@\.sources@@g" | xargs`
-    fi
-
-    check_config_avail "$DISABLE"
-    for i in $DISABLE; do
-        sed --in-place --expression="s@Enabled:\ yes@Enabled:\ no@g" $SRCCFGPATH/$i.sources
-    done
-}
-
-# Full map logic.
-while getopts ":hle:d:O" switches; do
-    case "$switches" in
-        l)
-            list_sources
-            exit 0
-            ;;
-        e)
-            ENABLE+="$OPTARG "
-            # Indicates who goes first, disabling or enabling. This may slightly improve UX.
-            [[ ! -z $enable_first || ! -z $disable_first ]] || enable_first=1
-            ;;
-        d)
-            DISABLE+="$OPTARG "
-            [[ ! -z $enable_first || ! -z $disable_first ]] || disable_first=1
-            ;;
-        O)
-            enable_overlays
-            exit 0
-            ;;
-        h)
-            show_help
-            exit 0
-            ;;
-        \?)
-            echo -e "Invalid option: -$OPTARG."
-            show_help
-            exit 1
-            ;;
-        \:)
-            echo -e "Option -$OPTARG requires an argument."
-            show_help
-            exit 1
-            ;;
-    esac
-done
-
-# Display first.
-if [[ $enable_first ]]; then
-    [[ -z "$ENABLE" ]]  || echo -e "Enabling:  $ENABLE"
-    [[ -z "$DISABLE" ]] || echo -e "Disabling: $DISABLE\n"
-else
-    [[ -z "$DISABLE" ]] || echo -e "Disabling: $DISABLE"
-    [[ -z "$ENABLE" ]]  || echo -e "Enabling:  $ENABLE\n"
-fi
-
-if [[ $enable_first ]]; then
-    [[ -z "$ENABLE" ]]  || enable_repos
-    [[ -z "$DISABLE" ]] || disable_repos
-else
-    [[ -z "$DISABLE" ]] || disable_repos
-    [[ -z "$ENABLE" ]]  || enable_repos
-fi
-
-# Always list current status after operations; even when no arguments were passed.
-list_sources
+new_conf_str = json.dumps(conf, sort_keys=True).strip()
+dirname = os.path.dirname(CONF_PATH)
+try:
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    if new_conf_str != conf_str:
+        with open(CONF_PATH, 'w') as conf_file:
+            conf_file.write(new_conf_str + '\n')
+except PermissionError as e:
+    logging.warn(
+        _('Failed to save settings to %s: permission denied.'), CONF_PATH)

@@ -1,7 +1,0 @@
-# CQUPT (Chongqing University of Posts and Telecommunications) OSS Mirror
-
-Enabled:    no
-Types:      deb
-URIs:       https://mirrors.cqupt.edu.cn/anthon/pkgs-apt
-Suites:     stable
-Components: main
