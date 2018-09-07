@@ -261,7 +261,7 @@ if len(full_args) > 0:
     elif full_args[0] == 'avail':
         show_available()
         exit()
-    elif full_args[0] == 'help':
+    elif full_args[0] == 'help' or full_args[0] == '--help':
         show_help()
         exit()
 
