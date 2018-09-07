@@ -19,8 +19,7 @@ REPO_DATA_DIR = '/usr/share/distro-repository-data'
 DEBS_URL = '/debs'
 REPORT_BUG = 'https://github.com/AOSC-Dev/apt-gen-list/issues'
 
-t = gettext.translation('apt-gen-list')
-_ = t.gettext
+_ = gettext.translation('apt-gen-list', fallback=True).gettext
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 HELP_MESSAGE = _('''
 Usage: apt-gen-list [stdout] [m [-|+]MIRROR1 ...] [c [-|+]COMP1 ...] [b BRANCH]
