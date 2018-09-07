@@ -1,0 +1,173 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2018 AOSC-Dev
+# Daming Yang <lion@aosc.io>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: apt-gen-list\n"
+"POT-Creation-Date: 2018-09-07 15:49+0800\n"
+"PO-Revision-Date: 2018-09-07 16:36+0800\n"
+"Language-Team: https://github.com/AOSC-Dev\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.0.9\n"
+"Last-Translator: Daming Yang <lion@aosc.io>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: zh_CN\n"
+
+#: apt-gen-list:25
+msgid ""
+"\n"
+"Usage: apt-gen-list [stdout] [m [-|+]MIRROR1 ...] [c [-|+]COMP1 ...] [b "
+"BRANCH]\n"
+"       apt-gen-list now\n"
+"       apt-gen-list avail\n"
+"       apt-gen-list help\n"
+"\n"
+"Keywords:\n"
+"    \"mirror\" is equivalent to \"m\";\n"
+"    \"branch\" is equivalent to \"b\";\n"
+"    \"component\" is equivalent to \"c\".\n"
+"\n"
+"Examples:\n"
+"    1. To set mirrors to \"origin\" and \"baz\":\n"
+"        # apt-gen-list mirror origin baz\n"
+"\n"
+"    2. To disable mirror \"origin\":\n"
+"        # apt-gen-list mirror -origin\n"
+"\n"
+"    3. To enable component \"opt-avx2\" and disable \"bsp-sunxi\":\n"
+"        # apt-gen-list c +opt-avx2 -bsp-sunxi\n"
+"\n"
+"    4. To set the branch to \"testing\":\n"
+"        # apt-gen-list b testing\n"
+"\n"
+"    5. To set the branch to \"testing\" and enable component \"bsp-sunxi\":\n"
+"        # apt-gen-list branch testing component +bsp-sunxi\n"
+"\n"
+"    6. To disable component \"main\":\n"
+"        # apt-gen-list c -main\n"
+"        => This is a no-op because \"main\" is mandatory\n"
+"\n"
+"    7. To reset everything to default values:\n"
+"        # apt-gen-list m b c\n"
+"        => It is equivalent to\n"
+"        # apt-gen-list mirror origin branch stable component main\n"
+"\n"
+"    8. To re-generate sources.list:\n"
+"        # apt-gen-list\n"
+"\n"
+"Report bugs to <%s>.\n"
+msgstr ""
+"\n"
+"用法：apt-gen-list [stdout] [m [-|+]镜像1 ...] [c [-|+]组件1 ...] [b 分支]\n"
+"       apt-gen-list now\n"
+"       apt-gen-list avail\n"
+"       apt-gen-list help\n"
+"\n"
+"关键字：\n"
+"    “mirror”与“m”等价；\n"
+"    “branch”与“b”等价；\n"
+"    “component”与“c”等价。\n"
+"\n"
+"示例：\n"
+"    1. 将镜像源设置为 origin 和 baz：\n"
+"        # apt-gen-list mirror origin baz\n"
+"\n"
+"    2. 禁用镜像源 origin：\n"
+"        # apt-gen-list mirror -origin\n"
+"\n"
+"    3. 启用 opt-avx2 组件并禁用 bsp-sunxi 组件：\n"
+"        # apt-gen-list c +opt-avx2 -bsp-sunxi\n"
+"\n"
+"    4. 设置分支为 testing：\n"
+"        # apt-gen-list b testing\n"
+"\n"
+"    5. 设置分支为 testing 并启用 bsp-sunxi 组件：\n"
+"        # apt-gen-list branch testing component +bsp-sunxi\n"
+"\n"
+"    6. 禁用 main 组件：\n"
+"        # apt-gen-list c -main\n"
+"        => 这个操作没有任何效果，main 是必选组件。\n"
+"\n"
+"    7. 全部重置为默认值：\n"
+"        # apt-gen-list m b c\n"
+"        => 它等价于：\n"
+"        # apt-gen-list mirror origin branch stable component main\n"
+"\n"
+"    8. 重新生成一遍 sources.list\n"
+"        # apt-gen-list\n"
+"\n"
+"将错误报告至 <%s>。\n"
+
+#: apt-gen-list:109
+msgid "You cannot change and set \"%s\" at the same time: "
+msgstr "您不能同时“设置”并“修改”%s："
+
+#: apt-gen-list:133
+msgid "You may only specify one branch."
+msgstr "您只能指定一条分支。"
+
+#: apt-gen-list:151
+msgid "Mirror \"%s\" does not exist and will be removed."
+msgstr "不存在 %s 镜像源，删去该项。"
+
+#: apt-gen-list:164
+msgid ""
+"It seems that you are trying to add/delete a branch, please specify a branch "
+"directly."
+msgstr "您似乎想要启用或禁用分支——请直接设置一条分支。"
+
+#: apt-gen-list:168
+msgid "Branch \"%s\" does not exist."
+msgstr "不存在 %s 分支。"
+
+#: apt-gen-list:177
+msgid "Component \"%s\" does not exist and will be removed."
+msgstr "不存在 %s 组件，删去该项。"
+
+#: apt-gen-list:185
+msgid "mirrors: %s"
+msgstr "镜像源：%s"
+
+#: apt-gen-list:186
+msgid "components: %s"
+msgstr "组件：%s"
+
+#: apt-gen-list:187
+msgid "branch: %s"
+msgstr "分支：%s"
+
+#: apt-gen-list:193
+msgid "== Branches =="
+msgstr "== 分支 =="
+
+#: apt-gen-list:199
+msgid "== Components =="
+msgstr "== 组件 =="
+
+#: apt-gen-list:204
+msgid "== Mirrors =="
+msgstr "== 镜像源 =="
+
+#: apt-gen-list:244
+msgid "%s does not exist."
+msgstr "不存在 %s。"
+
+#: apt-gen-list:285
+msgid "%d error(s) occurred while parsing command line arguments."
+msgstr "解析命令行时发生了 %s 个错误。"
+
+#: apt-gen-list:319
+msgid "Updated %s."
+msgstr "%s 已更新。"
+
+#: apt-gen-list:322
+msgid "Failed to update %s: permission denied."
+msgstr "无法更新 %s：权限不足。"
+
+#: apt-gen-list:335
+msgid "Failed to save settings to %s: permission denied."
+msgstr "无法保存设定到 %s：权限不足。"
