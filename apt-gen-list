@@ -264,6 +264,9 @@ if len(full_args) > 0:
     elif full_args[0] == 'help' or full_args[0] == '--help':
         show_help()
         exit()
+    elif full_args[0] not in keywords:
+        logging.warn(_("Unknown parameter, please consult `apt-gen-list help` for usage details."))
+        exit()
 
 current_function = None
 pending_args = []
