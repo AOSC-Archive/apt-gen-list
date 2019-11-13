@@ -146,7 +146,7 @@ def sanitize_mirror():
     conf_mirror = conf['mirror'].copy()
     for mirror in conf['mirror']:
         if mirror not in mirrors:
-            logging.warn(
+            logging.warning(
                 _('Mirror "%s" does not exist and will be removed.'), mirror)
             conf_mirror.remove(mirror)
     conf['mirror'] = conf_mirror
@@ -159,7 +159,7 @@ def sanitize_branch():
     # branch is mandatory
     branch = conf['branch']
     if branch.startswith('+') or branch.startswith('-'):
-        logging.warn(
+        logging.warning(
             _('It seems that you are trying to add/delete a branch, please specify a branch directly.'))
     if branch == '':
         conf['branch'] = 'stable'
@@ -172,7 +172,7 @@ def sanitize_component():
     conf_comp = conf['component'].copy()
     for comp in conf['component']:
         if comp not in components:
-            logging.warn(
+            logging.warning(
                 _('Component "%s" does not exist and will be removed.'), comp)
             conf_comp.remove(comp)
     conf['component'] = conf_comp
@@ -265,7 +265,7 @@ if len(full_args) > 0:
         show_help()
         exit()
     elif full_args[0] not in keywords:
-        logging.warn(_("Unknown parameter, please consult `apt-gen-list help` for usage details."))
+        logging.warning(_("Unknown parameter, please consult `apt-gen-list help` for usage details."))
         exit()
 
 current_function = None
@@ -333,5 +333,5 @@ try:
         with open(CONF_PATH, 'w') as conf_file:
             conf_file.write(new_conf_str + '\n')
 except PermissionError as e:
-    logging.warn(
+    logging.warning(
         _('Failed to save settings to %s: permission denied.'), CONF_PATH)
