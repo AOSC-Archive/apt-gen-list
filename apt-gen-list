@@ -210,6 +210,7 @@ def show_available():
 def show_help():
     print(HELP_MESSAGE.strip('\n'))
 
+
 keywords = {
     'm': parse_mirror,
     'mirror': parse_mirror,
@@ -242,6 +243,8 @@ def read_yaml_wrapper(path: str):
         logging.error(
             _('%s does not exist.'), MIRRORS_PATH)
         exit(2)
+
+
 mirrors = read_yaml_wrapper(MIRRORS_PATH)
 branches = read_yaml_wrapper(BRANCHES_PATH)
 components = read_yaml_wrapper(COMPS_PATH)
@@ -321,7 +324,7 @@ else:
         logging.info(_('Updated %s.'), OUTPUT_PATH)
     except PermissionError as e:
         logging.error(
-            _('Failed to update %s: permission denied.'), OUTPUT_PATH)
+            _('Failed to update %s: %s.'), OUTPUT_PATH, e)
         exit(1)
 
 new_conf_str = json.dumps(conf, sort_keys=True).strip()
@@ -334,4 +337,4 @@ try:
             conf_file.write(new_conf_str + '\n')
 except PermissionError as e:
     logging.warning(
-        _('Failed to save settings to %s: permission denied.'), CONF_PATH)
+        _('Failed to save settings to %s: %s.'), CONF_PATH, e)
